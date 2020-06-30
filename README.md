@@ -4,6 +4,5 @@ Javascript hockey simulator, still experimental. For now, it's just generate pla
 The goal is to have a highly customizable simulator.
 
 Future:
-- Use Typescript
 - Web app
 - Electron app
