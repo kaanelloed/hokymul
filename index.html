@@ -1,0 +1,46 @@
+<!-- Hokymul - Hockey simulator
+Copyright (C) 2020  David Proulx
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Hokymul</title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<h1>Hokymul</h1>
+		<p>Hockey simulator</p>
+		<button onclick="btnGeneratePlayers_Click()">Generate players</button>
+		<table>
+			<tr>
+				<td>Home Team</td>
+				<td>Away Team</td>
+			</tr>
+			<tr>
+				<td><div id="team1"></div></td>
+				<td><div id="team2"></div></td>
+			</tr>
+		</table>
+		
+		<button onclick="btnSimulate_Click()">Simulate</button>
+		<div id="game"></div>
+	</body>
+	
+	<!-- <script type="module" src="main.js"></script> -->
+	<script src="main.js"></script>
+	<noscript>You need Javascript</noscript>
+</html> 

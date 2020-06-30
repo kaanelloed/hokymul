@@ -1,0 +1,59 @@
+/* Hokymul - Hockey simulator
+Copyright (C) 2020  David Proulx
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+
+html {
+	background-color: #280f00;
+	color: #e6e6e6;
+}
+
+button {
+	background-color: darkred;
+	border: 2px solid darkred;
+	border-radius: 4px;
+	color: #e6e6e6;
+	cursor: pointer;
+	display: inline-block;
+	font-size: 16px;
+	padding: 10px 20px;
+	transition-duration: 0.5s;
+}
+
+button:hover {
+	background-color: #280f00;
+}
+
+/* Chromium scrollbar */
+::-webkit-scrollbar {
+	width: 6px;
+}
+
+::-webkit-scrollbar-track {
+	background: #101222; 
+}
+
+::-webkit-scrollbar-thumb {
+	background: #6e6f78; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #898a95; 
+}
+
+/* Firefox scrollbar */
+html {
+    scrollbar-color: #6e6f78 #101222;
+    scrollbar-width: thin;
+}
