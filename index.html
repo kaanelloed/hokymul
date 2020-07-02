@@ -23,21 +23,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 	</head>
 	<body>
 		<h1>Hokymul</h1>
-		<p>Hockey simulator</p>
-		<button onclick="btnGeneratePlayers_Click()">Generate players</button>
+		<p>Javascript hockey simulator</p>
+
+		<button onclick="btnNewGame_Click()">New</button>
+
 		<table>
 			<tr>
-				<td>Home Team</td>
-				<td>Away Team</td>
-			</tr>
-			<tr>
-				<td><div id="team1"></div></td>
-				<td><div id="team2"></div></td>
+				<td>
+					<button onclick="btnGeneratePlayers_Click()">Generate players</button>
+					<table>
+						<tr>
+							<td>Home Team</td>
+							<td>Away Team</td>
+						</tr>
+						<tr>
+							<td><div id="team1"></div></td>
+							<td><div id="team2"></div></td>
+						</tr>
+					</table>
+				</td>
+				<td>
+					<button onclick="btnSimulate_Click()">Simulate</button>
+					<div id="game"></div>
+				</td>
 			</tr>
 		</table>
-		
-		<button onclick="btnSimulate_Click()">Simulate</button>
-		<div id="game"></div>
 	</body>
 	
 	<!-- <script type="module" src="main.js"></script> -->

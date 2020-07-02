@@ -297,7 +297,7 @@ class ScoreBoard {
     date: Date;
     homeTeam: Team;
     awayTeam: Team;
-    periods: any[];
+    periods: GamePeriod[];
 
     constructor(id: number, date: Date, homeTeam: Team, awayTeam: Team) {
         this.id = id;
@@ -316,12 +316,67 @@ class ScoreBoard {
         for (var per of this.periods) {
             text += `<div>${per.name}</div>`;
 
+            if (per.goals.length === 0) {
+                text += "No goal";
+            }
+
             for (var goal of per.goals) {
                 text += `<div>${goal}</div>`;
             }
         }
 
         return text;
+    }
+}
+
+class GamePeriod {
+    name: string;
+    goals: GameGoal[];
+
+    constructor(name: string) {
+        this.name = name;
+        this.goals = [];
+    }
+}
+
+class GameGoal {
+    time: number;
+    goalScorer: Skater;
+    goalNumber: number;
+    firstAssist: Skater;
+    firstAssisNumber: number;
+    secondAssist: Skater;
+    secondAssisNumber: number;
+    homeGoalNumber: number;
+    awayGoalNumber: number;
+
+    constructor(time: number, goalScorer: Skater, goalNumber: number, firstAssist: Skater, firstAssisNumber: number, secondAssist: Skater, secondAssisNumber: number, homeGoalNumber: number, awayGoalNumber: number) {
+        this.time = time;
+        this.goalScorer = goalScorer;
+        this.goalNumber = goalNumber;
+        this.firstAssist = firstAssist;
+        this.firstAssisNumber = firstAssisNumber;
+        this.secondAssist = secondAssist;
+        this.secondAssisNumber = secondAssisNumber;
+        this.homeGoalNumber = homeGoalNumber;
+        this.awayGoalNumber = awayGoalNumber;
+    }
+
+    toString() : string {
+        let assistString: string;
+
+        if (this.firstAssist !== undefined) {
+            assistString = `${this.firstAssist.name} (${this.firstAssisNumber})`;
+
+            if (this.secondAssist !== undefined) {
+                assistString += ` ${this.secondAssist.name} (${this.secondAssisNumber})`;
+            }
+        }
+        else {
+            assistString = "Unassisted";
+        }
+
+        return `${getGameTime(this.time)} ${this.goalScorer.team.name} ${this.homeGoalNumber}-${this.awayGoalNumber} | ${this.goalScorer.name} (${this.goalNumber}) ${assistString}`
     }
 }
 
@@ -344,21 +399,17 @@ class Game {
 
         this.homeTeam = new Team(1, "Home Team");
         this.awayTeam = new Team(2, "Away Team");
-
-        this.generatePlayers();
     }
 
     simulate(): void {
         let sb = new ScoreBoard(1, new Date(), this.homeTeam , this.awayTeam)
     
-        //console.clear();
         this.homeTeam.resetScore();
         this.awayTeam.resetScore();
     
         for (var p = 1; p <= this.nbPeriod; p++) {
             let per = {name: "Period " + p, goals: []};
     
-            //console.log("Period " + p);
             let periodGoal = this.homeTeam.goal + this.awayTeam.goal;
     
             for (var i = 0; i < 60 * this.periodLength; i++) {
@@ -368,15 +419,10 @@ class Game {
             this.homeTeam.lines.resetLines();
             this.awayTeam.lines.resetLines();
     
-            if (periodGoal === this.homeTeam.goal + this.awayTeam.goal)
-                per.goals.push("No goal");
-                //console.log("No goal");
-    
             sb.periods.push(per);
         }
     
         if (this.homeTeam.goal === this.awayTeam.goal) {
-            //console.log("Overtime");
             let per = {name: "Overtime", goals: []};
     
             let otGoal = false;
@@ -391,11 +437,10 @@ class Game {
             sb.periods.push(per);
         }
     
-        //console.log("Home : " + homeTeam.goal + " | Away : " + awayTeam.goal + " ||| **Shoot** Home: " + homeTeam.shoot + " | Away: " + awayTeam.shoot);
         document.getElementById("game").innerHTML = sb.toString();
     }
     
-    simulateMin(time: number, period: any): boolean {
+    simulateMin(time: number, period: GamePeriod): boolean {
         let goal = false;
     
         let totOff = this.homeTeam.lines.lineOffense() + this.awayTeam.lines.lineOffense();
@@ -414,26 +459,21 @@ class Game {
                 offenceTeam.goal++;
                 goal = true;
     
-                //var scorer = offenceTeam.lines.getSkaterRandom(Math.random());
                 let scorer = this.getGoalScorer(offenceTeam.lines.currentFwdLine, offenceTeam.lines.currentDefLine);
                 let primAssistSkater = this.getGoalPrimAssist(offenceTeam.lines.currentFwdLine, offenceTeam.lines.currentDefLine, scorer);
+                let secAssistSkater : Skater = undefined;
                 scorer.goal++;
-    
-                let assist = "Unassisted";
+
                 if (primAssistSkater !== undefined) {
                     primAssistSkater.assist++;
-                    assist = `${primAssistSkater.name} (${primAssistSkater.assist})`;
     
-                    let secAssistSkater = this.getGoalSecAssist(offenceTeam.lines.currentFwdLine, offenceTeam.lines.currentDefLine, scorer, primAssistSkater);
-    
+                    secAssistSkater = this.getGoalSecAssist(offenceTeam.lines.currentFwdLine, offenceTeam.lines.currentDefLine, scorer, primAssistSkater);
                     if (secAssistSkater !== undefined) {
                         secAssistSkater.assist++;
-                        assist += ` ${secAssistSkater.name} (${secAssistSkater.assist})`;
                     }
                 }
-                
-                period.goals.push(`${this.getGameTime(time)} ${offenceTeam.name} ${this.homeTeam.goal}-${this.awayTeam.goal} | ${scorer.name} (${scorer.goal}) ${assist}`);
-                //console.log(`${getGameTime(time)} ${offenceTeam.name} ${homeTeam.goal}-${awayTeam.goal} | ${scorer.name} (${scorer.goal}) ${assist}`);
+
+                period.goals.push(new GameGoal(time, scorer, scorer.goal, primAssistSkater, primAssistSkater?.assist, secAssistSkater, secAssistSkater?.assist, this.homeTeam.goal, this.awayTeam.goal));
             }
         }
     
@@ -491,11 +531,6 @@ class Game {
         return skater;
     }
     
-    getGameTime(time: number): string {
-        let scoreTime = new Date(time * 1000);
-        return scoreTime.getMinutes().toString().padStart(2, "0") + ":" + scoreTime.getSeconds().toString().padStart(2, "0");
-    }
-    
     generatePlayerName(): string {
         let indexFN = randomBetween(0, canadaMaleFirstNames.length - 1);
         let indexLN = randomBetween(0, canadaLastNames.length - 1);
@@ -549,16 +584,28 @@ class Game {
     }
 }
 
+function getGameTime(time: number): string {
+    let scoreTime = new Date(time * 1000);
+    return scoreTime.getMinutes().toString().padStart(2, "0") + ":" + scoreTime.getSeconds().toString().padStart(2, "0");
+}
+
 function randomBetween(min: number, max: number): number {
     return min + Math.round(Math.random() * (max - min));
 }
 
-let game = new Game();
+let game: Game;
 
 function btnSimulate_Click(): void {
+    if (game === undefined) return;
     game.simulate();
 }
 
 function btnGeneratePlayers_Click(): void {
+    if (game === undefined) return;
+    game.generatePlayers();
+}
+
+function btnNewGame_Click(): void {
+    game = new Game();
     game.generatePlayers();
 }
