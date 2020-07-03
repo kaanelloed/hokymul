@@ -25,29 +25,153 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 		<h1>Hokymul</h1>
 		<p>Javascript hockey simulator</p>
 
-		<button onclick="btnNewGame_Click()">New</button>
+		<div class="tab">
+			<button id="defaultTab" class="tabBtn active" onclick="btnTab_Click(this)" data-divId="tabSimulation">Simulation</button>
+			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabTeams">Teams</button>
+			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabLines">Lines</button>
+		</div>
 
-		<table>
-			<tr>
-				<td>
-					<button onclick="btnGeneratePlayers_Click()">Generate players</button>
-					<table>
-						<tr>
-							<td>Home Team</td>
-							<td>Away Team</td>
-						</tr>
-						<tr>
-							<td><div id="team1"></div></td>
-							<td><div id="team2"></div></td>
-						</tr>
-					</table>
-				</td>
-				<td>
-					<button onclick="btnSimulate_Click()">Simulate</button>
-					<div id="game"></div>
-				</td>
-			</tr>
-		</table>
+		<div id="tabSimulation" class="tabContent">
+			<button onclick="btnNewGame_Click()">New</button>
+			<button onclick="btnSimulate_Click()">Simulate</button>
+			<div id="game"></div>
+		</div>
+
+		<div id="tabTeams" class="tabContent">
+			<button onclick="btnGeneratePlayers_Click()">Generate players</button>
+			<table>
+				<tr>
+					<td>
+						Home Team
+						<button onclick="btnEditLines_Click(this)" data-teamid="1">Edit Lines</button>
+					</td>
+					<td>
+						Away Team
+						<button onclick="btnEditLines_Click(this)" data-teamid="2">Edit Lines</button>
+					</td>
+				</tr>
+				<tr>
+					<td><div id="team1"></div></td>
+					<td><div id="team2"></div></td>
+				</tr>
+			</table>
+		</div>
+
+		<div id="tabLines" class="tabContent">
+			<div class="linePlayers">
+				<div id="lineTeamName"></div><br><br>
+
+				<div id="linePlayersList"></div>
+			</div>
+			<table>
+				<tr>
+					<td>First Line</td>
+				</tr>
+				<tr>
+					<td>Left Wing</td>
+					<td>Center</td>
+					<td>Right Wing</td>
+					<td>TOI</td>
+				</tr>
+				<tr>
+					<td><p id="lw1" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="c1" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="rw1" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><input id="toiF1" class="teamLine" type="text"></td>
+				</tr>
+				<tr>
+					<td>Left Defenceman</td>
+					<td>Right Defenceman</td>
+					<td>TOI</td>
+				</tr>
+				<tr>
+					<td><p id="ld1" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="rd1" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><input id="toiD1" class="teamLine" type="text"></td>
+				</tr>
+
+				<tr>
+					<td>Second Line</td>
+				</tr>
+				<tr>
+					<td>Left Wing</td>
+					<td>Center</td>
+					<td>Right Wing</td>
+					<td>TOI</td>
+				</tr>
+				<tr>
+					<td><p id="lw2" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="c2" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="rw2" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><input id="toiF2" class="teamLine" type="text"></td>
+				</tr>
+				<tr>
+					<td>Left Defenceman</td>
+					<td>Right Defenceman</td>
+					<td>TOI</td>
+				</tr>
+				<tr>
+					<td><p id="ld2" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="rd2" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><input id="toiD2" class="teamLine" type="text"></td>
+				</tr>
+
+				<tr>
+					<td>Third Line</td>
+				</tr>
+				<tr>
+					<td>Left Wing</td>
+					<td>Center</td>
+					<td>Right Wing</td>
+					<td>TOI</td>
+				</tr>
+				<tr>
+					<td><p id="lw3" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="c3" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="rw3" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><input id="toiF3" class="teamLine" type="text"></td>
+				</tr>
+				<tr>
+					<td>Left Defenceman</td>
+					<td>Right Defenceman</td>
+					<td>TOI</td>
+				</tr>
+				<tr>
+					<td><p id="ld3" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="rd3" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><input id="toiD3" class="teamLine" type="text"></td>
+				</tr>
+
+				<tr>
+					<td>Fourth Line</td>
+				</tr>
+				<tr>
+					<td>Left Wing</td>
+					<td>Center</td>
+					<td>Right Wing</td>
+					<td>TOI</td>
+				</tr>
+				<tr>
+					<td><p id="lw4" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="c4" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="rw4" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><input id="toiF4" class="teamLine" type="text"></td>
+				</tr>
+				<tr>
+					<td>Goalies</td>
+				</tr>
+				<tr>
+					<td>1</td>
+					<td>2</td>
+				</tr>
+				<tr>
+					<td><p id="g1" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><p id="g2" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
+					<td><button onclick="btnSaveLines_Click()">Save</button></td>
+					<td><button onclick="btnAutoLines_Click()">Auto</button></td>
+				</tr>
+			</table>
+		</div>
 	</body>
 	
 	<!-- <script type="module" src="main.js"></script> -->

@@ -21,10 +21,10 @@ class Player {
     id: number;
     name: string;
     team: Team;
-    pos: string;
+    pos: PlayerPosition;
     ov: number;
 
-    constructor(id: number, name: string, team: Team, pos: string, ov: number) {
+    constructor(id: number, name: string, team: Team, pos: PlayerPosition, ov: number) {
         this.id = id;
         this.name = name;
         this.pos = pos;
@@ -36,6 +36,42 @@ class Player {
         this.team = team;
         team.players.push(this);
     }
+
+    getPositionCode(): string {
+        let text: string = "";
+
+        switch (this.pos) {
+            case PlayerPosition.leftWing:
+                text = "LW";
+                break;
+            case PlayerPosition.center:
+                text = "C";
+                break;
+            case PlayerPosition.rightWing:
+                text = "RW";
+                break;
+            case PlayerPosition.leftDefenceman:
+                text = "LD";
+                break;
+            case PlayerPosition.rightDefenceman:
+                text = "RD";
+                break;
+            case PlayerPosition.goalie:
+                text = "G";
+                break;
+        }
+
+        return text;
+    }
+}
+
+enum PlayerPosition {
+    leftWing,
+    center,
+    rightWing,
+    leftDefenceman,
+    rightDefenceman,
+    goalie
 }
 
 class Skater extends Player{
@@ -46,7 +82,7 @@ class Skater extends Player{
     goal: number;
     assist: number;
 
-    constructor(id: number, name: string, team: Team, pos: string, off: number, def: number) {
+    constructor(id: number, name: string, team: Team, pos: PlayerPosition, off: number, def: number) {
         super(id, name, team, pos, Math.round((off + def) / 2));
         this.off = off;
         this.def = def;
@@ -62,7 +98,7 @@ class Skater extends Player{
 
 class Goalie extends Player {
     constructor(id: number, name: string, team: Team, ov: number) {
-        super(id, name, team, "G", ov);
+        super(id, name, team, PlayerPosition.goalie, ov);
     }
 }
 
@@ -100,18 +136,18 @@ class ForwardLine extends TeamLine {
 }
 
 class DefenceLine extends TeamLine {
-    leftDefencemen: Skater;
-    rightDefencemen: Skater;
+    leftDefenceman: Skater;
+    rightDefenceman: Skater;
 
-    constructor(leftDefencemen: Skater, rightDefencemen: Skater, time: number) {
+    constructor(leftDefenceman: Skater, rightDefenceman: Skater, time: number) {
         super(time);
-        this.leftDefencemen = leftDefencemen;
-        this.rightDefencemen = rightDefencemen;
+        this.leftDefenceman = leftDefenceman;
+        this.rightDefenceman = rightDefenceman;
     }
 
     resetScore(): void {
-        this.leftDefencemen.resetScore();
-        this.rightDefencemen.resetScore();
+        this.leftDefenceman.resetScore();
+        this.rightDefenceman.resetScore();
     }
 }
 
@@ -125,13 +161,14 @@ class TeamLines {
     secondDuo: DefenceLine;
     thirdDuo: DefenceLine;
     currentDefLine: DefenceLine;
-    goalie: Goalie;
+    firstGoalie: Goalie;
+    secondGoalie: Goalie;
     currentFwdLineInd: number;
     currentDefLineInd: number;
     offenceImpactOnOffence: number;
     defenceImpactOnDefence: number;
 
-    constructor(firstLine: ForwardLine, secondLine: ForwardLine, thirdLine: ForwardLine, fourthLine: ForwardLine, firstDuo: DefenceLine, secondDuo: DefenceLine, thirdDuo: DefenceLine, goalie: Goalie) {
+    constructor(firstLine: ForwardLine, secondLine: ForwardLine, thirdLine: ForwardLine, fourthLine: ForwardLine, firstDuo: DefenceLine, secondDuo: DefenceLine, thirdDuo: DefenceLine, firstGoalie: Goalie, secondGoalie: Goalie) {
         this.firstLine = firstLine;
         this.secondLine = secondLine;
         this.thirdLine = thirdLine;
@@ -139,7 +176,8 @@ class TeamLines {
         this.firstDuo = firstDuo;
         this.secondDuo = secondDuo;
         this.thirdDuo = thirdDuo;
-        this.goalie = goalie;
+        this.firstGoalie = firstGoalie;
+        this.secondGoalie = secondGoalie;
 
         this.currentFwdLineInd = 1;
         this.currentDefLineInd = 1;
@@ -203,13 +241,13 @@ class TeamLines {
 
     lineOffense(): number {
         let avgFor = (this.currentFwdLine.leftWing.off + this.currentFwdLine.center.off + this.currentFwdLine.rightWing.off) / 3;
-        let avgDef = (this.currentDefLine.leftDefencemen.off + this.currentDefLine.rightDefencemen.off) / 2
+        let avgDef = (this.currentDefLine.leftDefenceman.off + this.currentDefLine.rightDefenceman.off) / 2
         return (avgFor * this.offenceImpactOnOffence) + (avgDef * (1 - this.offenceImpactOnOffence));
     }
 
     lineDefense(): number {
         let avgFor = (this.currentFwdLine.leftWing.def + this.currentFwdLine.center.def + this.currentFwdLine.rightWing.def) / 3;
-        let avgDef = (this.currentDefLine.leftDefencemen.def + this.currentDefLine.rightDefencemen.def) / 2
+        let avgDef = (this.currentDefLine.leftDefenceman.def + this.currentDefLine.rightDefenceman.def) / 2
         return (avgFor * (1 - this.defenceImpactOnDefence)) + (avgDef * this.defenceImpactOnDefence);
     }
 
@@ -261,6 +299,8 @@ class Team {
         this.shoot = 0;
         this.goal = 0;
         this.players = [];
+
+        this.lines = undefined;
     }
 
     resetScore(): void {
@@ -281,7 +321,7 @@ class Team {
                 def = player.def;
             }
             
-            text += `<tr><td>${player.name}</td><td>${player.pos}</td><td>${off ?? 0}</td><td>${def ?? 0}</td><td>${player.ov}</td></tr>`;
+            text += `<tr><td>${player.name}</td><td>${player.getPositionCode()}</td><td>${off ?? 0}</td><td>${def ?? 0}</td><td>${player.ov}</td></tr>`;
 
             off = 0;
             def = 0;
@@ -410,8 +450,6 @@ class Game {
         for (var p = 1; p <= this.nbPeriod; p++) {
             let per = {name: "Period " + p, goals: []};
     
-            let periodGoal = this.homeTeam.goal + this.awayTeam.goal;
-    
             for (var i = 0; i < 60 * this.periodLength; i++) {
                 this.simulateMin(i, per);
             }
@@ -455,7 +493,7 @@ class Game {
     
             offenceTeam.shoot++;
     
-            if (defenseTeam.lines.goalie.ov * (1 - this.goalieBase) + (this.goalieBase * 100) < Math.random() * 100) {
+            if (defenseTeam.lines.firstGoalie.ov * (1 - this.goalieBase) + (this.goalieBase * 100) < Math.random() * 100) {
                 offenceTeam.goal++;
                 goal = true;
     
@@ -506,13 +544,13 @@ class Game {
             idsToExclude.push(skaterToExclude[i].id);
         }
         
-        let totOff = fwdLine.leftWing.off + fwdLine.center.off + fwdLine.rightWing.off + defLine.leftDefencemen.off + defLine.rightDefencemen.off + noSkater - offToExclude;
+        let totOff = fwdLine.leftWing.off + fwdLine.center.off + fwdLine.rightWing.off + defLine.leftDefenceman.off + defLine.rightDefenceman.off + noSkater - offToExclude;
         
         let lw = !idsToExclude.includes(fwdLine.leftWing.id, 0) ? fwdLine.leftWing.off / totOff : 0;
         let c = !idsToExclude.includes(fwdLine.center.id, 0) ? fwdLine.center.off / totOff : 0;
         let rw = !idsToExclude.includes(fwdLine.rightWing.id, 0) ? fwdLine.rightWing.off / totOff : 0;
-        let ld = !idsToExclude.includes(defLine.leftDefencemen.id, 0) ? defLine.leftDefencemen.off / totOff : 0;
-        let rd = !idsToExclude.includes(defLine.rightDefencemen.id, 0) ? defLine.rightDefencemen.off / totOff : 0;
+        let ld = !idsToExclude.includes(defLine.leftDefenceman.id, 0) ? defLine.leftDefenceman.off / totOff : 0;
+        let rd = !idsToExclude.includes(defLine.rightDefenceman.id, 0) ? defLine.rightDefenceman.off / totOff : 0;
         let none = noSkater / totOff;
     
         if (lw > rdn)
@@ -522,9 +560,9 @@ class Game {
         else if (lw + c + rw > rdn)
             skater = fwdLine.rightWing;
         else if (lw + c + rw + ld > rdn)
-            skater = defLine.leftDefencemen;
+            skater = defLine.leftDefenceman;
         else if (lw + c + rw + ld + rd > rdn)
-            skater = defLine.rightDefencemen;
+            skater = defLine.rightDefenceman;
         else if (lw + c + rw + ld + rd + none > rdn)
             skater = undefined;
     
@@ -550,37 +588,31 @@ class Game {
     }
     
     generateTeamPlayers(team: Team) {
+        let id = 0;
         team.players = [];
     
-        let lw1 = new Skater(1, this.generatePlayerName(), team, "LW", randomBetween(75, 85), randomBetween(55, 80));
-        let c1 = new Skater(2, this.generatePlayerName(), team, "C", randomBetween(75, 85), randomBetween(55, 80));
-        let rw1 = new Skater(3, this.generatePlayerName(), team, "RW", randomBetween(75, 85), randomBetween(55, 80));
-        let ld1 = new Skater(4, this.generatePlayerName(), team, "LD", randomBetween(55, 80), randomBetween(75, 85));
-        let rd1 = new Skater(5, this.generatePlayerName(), team, "RD", randomBetween(55, 80), randomBetween(75, 85));
-        let lw2 = new Skater(6, this.generatePlayerName(), team, "LW", randomBetween(70, 80), randomBetween(55, 80));
-        let c2 = new Skater(7, this.generatePlayerName(), team, "C", randomBetween(70, 80), randomBetween(55, 80));
-        let rw2 = new Skater(8, this.generatePlayerName(), team, "RW", randomBetween(70, 80), randomBetween(55, 80));
-        let ld2 = new Skater(9, this.generatePlayerName(), team, "LD", randomBetween(55, 75), randomBetween(75, 80));
-        let rd2 = new Skater(10, this.generatePlayerName(), team, "RD", randomBetween(55, 75), randomBetween(75, 80));
-        let lw3 = new Skater(11, this.generatePlayerName(), team, "LW", randomBetween(65, 75), randomBetween(65, 75));
-        let c3 = new Skater(12, this.generatePlayerName(), team, "C", randomBetween(65, 75), randomBetween(65, 75));
-        let rw3 = new Skater(13, this.generatePlayerName(), team, "RW", randomBetween(65, 75), randomBetween(65, 75));
-        let ld3 = new Skater(14, this.generatePlayerName(), team, "LD", randomBetween(55, 75), randomBetween(70, 75));
-        let rd3 = new Skater(15, this.generatePlayerName(), team, "RD", randomBetween(55, 75), randomBetween(70, 75));
-        let lw4 = new Skater(16, this.generatePlayerName(), team, "LW", randomBetween(60, 70), randomBetween(65, 75));
-        let c4 = new Skater(17, this.generatePlayerName(), team, "C", randomBetween(60, 70), randomBetween(65, 75));
-        let rw4 = new Skater(18, this.generatePlayerName(), team, "RW", randomBetween(60, 70), randomBetween(65, 75));
-        let g1 = new Goalie(19, this.generatePlayerName(), team, randomBetween(75, 85));
-    
-        let f1 = new ForwardLine(lw1, c1, rw1, 80);
-        let f2 = new ForwardLine(lw2, c2, rw2, 60);
-        let f3 = new ForwardLine(lw3, c3, rw3, 40);
-        let f4 = new ForwardLine(lw4, c4, rw4, 20);
-        let d1 = new DefenceLine(ld1, rd1, 70);
-        let d2 = new DefenceLine(ld2, rd2, 50);
-        let d3 = new DefenceLine(ld3, rd3, 30);
-    
-        team.lines = new TeamLines(f1, f2, f3, f4, d1, d2, d3, g1);
+        id = this.generateSkatersForPosition(team, PlayerPosition.leftWing, 60, 85, 55, 80, 4, id);
+        id = this.generateSkatersForPosition(team, PlayerPosition.center, 60, 85, 55, 80, 4, id);
+        id = this.generateSkatersForPosition(team, PlayerPosition.rightWing, 60, 85, 55, 80, 4, id);
+        id = this.generateSkatersForPosition(team, PlayerPosition.leftDefenceman, 60, 85, 55, 80, 3, id);
+        id = this.generateSkatersForPosition(team, PlayerPosition.rightDefenceman, 55, 80, 65, 85, 3, id);
+        id = this.generateGoalies(team, 70, 85, 2, id);
+    }
+
+    generateSkatersForPosition(team: Team, pos: PlayerPosition, minOffence: number, maxOffence: number, minDefence: number, maxDefence: number, nbToGenerate: number, startingId: number): number {
+        for(let i = 0; i < nbToGenerate; i++) {
+            new Skater(startingId++, this.generatePlayerName(), team, pos, randomBetween(minOffence, maxOffence), randomBetween(minDefence, maxDefence));
+        }
+
+        return startingId;
+    }
+
+    generateGoalies(team: Team, minOveral: number, maxOveral: number, nbToGenerate: number, startingId: number): number {
+        for(let i = 0; i < nbToGenerate; i++) {
+            new Goalie(startingId++, this.generatePlayerName(), team, randomBetween(minOveral, maxOveral));
+        }
+
+        return startingId;
     }
 }
 
@@ -594,9 +626,11 @@ function randomBetween(min: number, max: number): number {
 }
 
 let game: Game;
+document.getElementById("defaultTab").click();
 
 function btnSimulate_Click(): void {
     if (game === undefined) return;
+    if (game.homeTeam.lines === undefined || game.awayTeam.lines === undefined) return
     game.simulate();
 }
 
@@ -605,7 +639,201 @@ function btnGeneratePlayers_Click(): void {
     game.generatePlayers();
 }
 
+function btnEditLines_Click(btn: HTMLButtonElement): void {
+    if (game === undefined) return;
+    let teamId = Number(btn.getAttribute("data-teamid"));
+
+    let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
+    let lineTeam = document.getElementById("lineTeamName");
+    lineTeam.innerText = currentTeam.name;
+    lineTeam.setAttribute("data-teamId", currentTeam.id.toString());
+
+    let playersList = document.getElementById("linePlayersList") as HTMLDivElement;
+
+    let htmlPlayers = "";
+
+    for (let player of currentTeam.players) {
+        if (player instanceof Skater) {
+            let skater = player as Skater;
+            htmlPlayers += `<div class="linePlayer" draggable="true" ondragstart="dragstart_handler(event)" data-playerId="${skater.id}">${skater.name} ${skater.getPositionCode()} ${skater.off} ${skater.def} ${skater.ov}</div>`;
+        }
+
+        if (player instanceof Goalie) {
+            htmlPlayers += `<div class="linePlayer" draggable="true" ondragstart="dragstart_handler(event)" data-playerId="${player.id}">${player.name} ${player.getPositionCode()} ${player.ov}</div>`;
+        }
+    }
+
+    playersList.innerHTML = htmlPlayers;
+}
+
 function btnNewGame_Click(): void {
     game = new Game();
     game.generatePlayers();
+}
+
+function btnTab_Click(btn: HTMLButtonElement): void {
+    let tabs: HTMLCollectionOf<HTMLDivElement>;
+    let tabButtons: HTMLCollectionOf<HTMLButtonElement>;
+
+    tabs = document.getElementsByClassName("tabContent") as HTMLCollectionOf<HTMLDivElement>;
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].style.display = "none";
+    }
+
+    tabButtons = document.getElementsByClassName("tabBtn") as HTMLCollectionOf<HTMLButtonElement>;
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+    }
+
+    document.getElementById(btn.getAttribute("data-divId")).style.display = "block";
+    btn.className += " active";
+}
+
+function dragstart_handler(event: DragEvent) {
+    let elm = (event.target) as HTMLElement;
+    event.dataTransfer.setData("text/plain", elm.getAttribute("data-playerId"));
+    event.dataTransfer.dropEffect = "copy";
+}
+
+function dragover_handler(event: DragEvent) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+}
+
+function drop_handler(event: DragEvent) {
+    event.preventDefault();
+
+    let playerId = Number(event.dataTransfer.getData("text/plain"));
+    let teamId = Number(document.getElementById("lineTeamName").getAttribute("data-teamId"));
+    let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
+
+    for (let player of currentTeam.players) {
+        if (player.id === playerId) {
+            setPlayerToElement(player, event.target as HTMLElement);
+        }
+    }
+}
+
+function setPlayerToElement(player: Player, elm: HTMLElement) {
+    elm.innerText = player.name;
+    elm.setAttribute("data-playerId", player.id.toString());
+}
+
+function btnSaveLines_Click(): void {
+    if (game === undefined) return;
+
+    let teamId = Number(document.getElementById("lineTeamName").getAttribute("data-teamId"));
+    let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
+
+    if (!checkLines()) return;
+
+    let f1 = new ForwardLine(getSkaterFromLine(currentTeam, "lw1"), getSkaterFromLine(currentTeam, "c1"), getSkaterFromLine(currentTeam, "rw1"), 80);
+    let f2 = new ForwardLine(getSkaterFromLine(currentTeam, "lw2"), getSkaterFromLine(currentTeam, "c2"), getSkaterFromLine(currentTeam, "rw2"), 60);
+    let f3 = new ForwardLine(getSkaterFromLine(currentTeam, "lw3"), getSkaterFromLine(currentTeam, "c3"), getSkaterFromLine(currentTeam, "rw3"), 40);
+    let f4 = new ForwardLine(getSkaterFromLine(currentTeam, "lw4"), getSkaterFromLine(currentTeam, "c4"), getSkaterFromLine(currentTeam, "rw4"), 20);
+    let d1 = new DefenceLine(getSkaterFromLine(currentTeam, "ld1"), getSkaterFromLine(currentTeam, "rd1"), 70);
+    let d2 = new DefenceLine(getSkaterFromLine(currentTeam, "ld2"), getSkaterFromLine(currentTeam, "rd2"), 50);
+    let d3 = new DefenceLine(getSkaterFromLine(currentTeam, "ld3"), getSkaterFromLine(currentTeam, "rd3"), 30);
+
+    currentTeam.lines = new TeamLines(f1, f2, f3, f4, d1, d2, d3, getGoalieFromLine(currentTeam, "g1"), getGoalieFromLine(currentTeam, "g2"));
+}
+
+function checkLines(): boolean {
+    let filled = true;
+
+    filled = filled && checkLinesPosition("lw", 4);
+    filled = filled && checkLinesPosition("c", 4);
+    filled = filled && checkLinesPosition("rw", 4);
+    filled = filled && checkLinesPosition("ld", 3);
+    filled = filled && checkLinesPosition("rd", 3);
+    filled = filled && checkLinesPosition("g", 2);
+
+    return filled;
+}
+
+function checkLinesPosition(startingPos: string, numberOfLine: number): boolean {
+    let filled = true;
+
+    for(let i = 1; i <= numberOfLine; i++) {
+        filled = filled && document.getElementById(startingPos + i).getAttribute("data-playerId") !== null;
+    }
+
+    return filled;
+}
+
+function getSkaterFromLine(team: Team, elementId: string): Skater {
+    return getPlayerFromLine(team, elementId) as Skater;
+}
+
+function getGoalieFromLine(team: Team, elementId: string): Goalie {
+    return getPlayerFromLine(team, elementId) as Goalie;
+}
+
+function getPlayerFromLine(team: Team, elementId: string): Player {
+    let playerId = Number(document.getElementById(elementId).getAttribute("data-playerId"));
+
+    for (let player of team.players) {
+        if (playerId === player.id) {
+            return player;
+        }
+    }
+
+    return undefined;
+}
+
+function btnAutoLines_Click(): void {
+    if (game === undefined) return;
+
+    let teamIdStr = document.getElementById("lineTeamName").getAttribute("data-teamId");
+
+    if (teamIdStr === null)
+        return;
+
+    let teamId = Number(teamIdStr);
+    let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
+    let leftWings: Player[] = [];
+    let centers: Player[] = [];
+    let rightWings: Player[] = [];
+    let leftDefencemen: Player[] = [];
+    let rightDefencemen: Player[] = [];
+    let goalies: Player[] = [];
+    let i = 0;
+
+    for (let player of currentTeam.players) {
+        switch (player.pos) {
+            case PlayerPosition.leftWing:
+                leftWings.push(player);
+                break;
+            case PlayerPosition.center:
+                centers.push(player);
+                break;
+            case PlayerPosition.rightWing:
+                rightWings.push(player);
+                break;
+            case PlayerPosition.leftDefenceman:
+                leftDefencemen.push(player);
+                break;
+            case PlayerPosition.rightDefenceman:
+                rightDefencemen.push(player);
+                break;
+            case PlayerPosition.goalie:
+                goalies.push(player);
+                break;
+        }
+    }
+
+    autoLinesByPosition(leftWings, "lw");
+    autoLinesByPosition(centers, "c");
+    autoLinesByPosition(rightWings, "rw");
+    autoLinesByPosition(leftDefencemen, "ld");
+    autoLinesByPosition(rightDefencemen, "rd");
+    autoLinesByPosition(goalies, "g");
+}
+
+function autoLinesByPosition(players: Player[], idStart: string) {
+    players.sort((a, b) => b.ov - a.ov);
+    let i = 1;
+    for (let player of players) {
+        setPlayerToElement(player, document.getElementById(idStart + i++));
+    }
 }
