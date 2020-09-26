@@ -19,6 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 	<head>
 		<title>Hokymul</title>
 		<meta charset="UTF-8">
+		<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon16x16.png">
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<body>
@@ -26,13 +28,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 		<p>Javascript hockey simulator</p>
 
 		<div class="tab">
-			<button id="defaultTab" class="tabBtn active" onclick="btnTab_Click(this)" data-divId="tabSimulation">Simulation</button>
+			<button id="defaultTab" class="tabBtn active" onclick="btnTab_Click(this)" data-divId="tabFile">File</button>
+			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabSimulation">Simulation</button>
 			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabTeams">Teams</button>
 			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabLines">Lines</button>
+			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabSettings">Settings</button>
+		</div>
+		
+		<div id="tabFile" class="tabContent">
+			<button onclick="btnNewGame_Click()">New</button>
 		</div>
 
 		<div id="tabSimulation" class="tabContent">
-			<button onclick="btnNewGame_Click()">New</button>
 			<button onclick="btnSimulate_Click()">Simulate</button>
 			<div id="game"></div>
 		</div>
@@ -63,7 +70,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 
 				<div id="linePlayersList"></div>
 			</div>
-			<table>
+			<table id="tblTeams">
 				<tr>
 					<td>First Line</td>
 				</tr>
@@ -169,6 +176,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 					<td><p id="g2" class="teamLine" ondrop="drop_handler(event)" ondragover="dragover_handler(event)">?</p></td>
 					<td><button onclick="btnSaveLines_Click()">Save</button></td>
 					<td><button onclick="btnAutoLines_Click()">Auto</button></td>
+				</tr>
+			</table>
+		</div>
+
+		<div id="tabSettings" class="tabContent">
+			<table>
+				<tr>
+					<td># of period:</td>
+					<td><input class="teamLine"></td>
+				</tr>
+				<tr>
+					<td>Period lenght:</td>
+					<td><input class="teamLine"></td>
+				</tr>
+				<tr>
+					<td># of offensive line:</td>
+					<td><input class="teamLine"></td>
+				</tr>
+				<tr>
+					<td># of defensive line:</td>
+					<td><input class="teamLine"></td>
+				</tr>
+				<tr>
+					<td><button onclick="btnSaveSettings_Click()">Save</button></td>
+					<td></td>
 				</tr>
 			</table>
 		</div>
