@@ -17,10 +17,12 @@
 class TeamLine {
     time: number;
     currentTOI: number;
+    lineNumber: number;
 
-    constructor(time: number) {
+    constructor(time: number, lineNumber: number) {
         this.time = time;
         this.currentTOI = time;
+        this.lineNumber = lineNumber
     }
 
     resetTime(): void {
@@ -33,8 +35,8 @@ class ForwardLine extends TeamLine {
     center: Skater;
     rightWing: Skater;
 
-    constructor(leftWing: Skater, center: Skater, rightWing: Skater, time: number) {
-        super(time);
+    constructor(leftWing: Skater, center: Skater, rightWing: Skater, time: number, lineNumber: number) {
+        super(time, lineNumber);
         this.leftWing = leftWing;
         this.center = center;
         this.rightWing = rightWing;
@@ -51,8 +53,8 @@ class DefenceLine extends TeamLine {
     leftDefenceman: Skater;
     rightDefenceman: Skater;
 
-    constructor(leftDefenceman: Skater, rightDefenceman: Skater, time: number) {
-        super(time);
+    constructor(leftDefenceman: Skater, rightDefenceman: Skater, time: number, lineNumber: number) {
+        super(time, lineNumber);
         this.leftDefenceman = leftDefenceman;
         this.rightDefenceman = rightDefenceman;
     }
@@ -64,14 +66,9 @@ class DefenceLine extends TeamLine {
 }
 
 class TeamLines {
-    firstLine: ForwardLine;
-    secondLine: ForwardLine;
-    thirdLine: ForwardLine;
-    fourthLine: ForwardLine;
+    forwardLines: ForwardLine[];
+    defenceLines: DefenceLine[];
     currentFwdLine: ForwardLine;
-    firstDuo: DefenceLine;
-    secondDuo: DefenceLine;
-    thirdDuo: DefenceLine;
     currentDefLine: DefenceLine;
     firstGoalie: Goalie;
     secondGoalie: Goalie;
@@ -80,24 +77,45 @@ class TeamLines {
     offenceImpactOnOffence: number;
     defenceImpactOnDefence: number;
 
-    constructor(firstLine: ForwardLine, secondLine: ForwardLine, thirdLine: ForwardLine, fourthLine: ForwardLine, firstDuo: DefenceLine, secondDuo: DefenceLine, thirdDuo: DefenceLine, firstGoalie: Goalie, secondGoalie: Goalie) {
-        this.firstLine = firstLine;
-        this.secondLine = secondLine;
-        this.thirdLine = thirdLine;
-        this.fourthLine = fourthLine;
-        this.firstDuo = firstDuo;
-        this.secondDuo = secondDuo;
-        this.thirdDuo = thirdDuo;
-        this.firstGoalie = firstGoalie;
-        this.secondGoalie = secondGoalie;
+    constructor() {
+        this.firstGoalie = undefined;
+        this.secondGoalie = undefined;
 
         this.currentFwdLineInd = 1;
         this.currentDefLineInd = 1;
-        this.currentFwdLine = firstLine;
-        this.currentDefLine = firstDuo;
+        this.currentFwdLine = undefined;
+        this.currentDefLine = undefined;
 
         this.offenceImpactOnOffence = 0.7;
         this.defenceImpactOnDefence = 0.7;
+
+        this.forwardLines = [];
+        this.defenceLines = [];
+    }
+
+    addForwardLine(forwardLine: ForwardLine) : void {
+        this.forwardLines.push(forwardLine);
+    }
+
+    addForwardLines(...forwardLines: ForwardLine[]) : void {
+        for (let forwardLine of forwardLines) {
+            this.addForwardLine(forwardLine);
+        }
+    }
+
+    addDefenceLine(defenceLine: DefenceLine) : void {
+        this.defenceLines.push(defenceLine);
+    }
+
+    addDefenceLines(...defenceLines: DefenceLine[]) : void {
+        for (let defenceLine of defenceLines) {
+            this.addDefenceLine(defenceLine);
+        }
+    }
+
+    addGoalies(starter: Goalie, backup: Goalie) : void {
+        this.firstGoalie = starter;
+        this.secondGoalie = backup;
     }
 
     nextFwdLine(): ForwardLine {
@@ -105,23 +123,9 @@ class TeamLines {
 
         this.currentFwdLineInd++;
 
-        if (this.currentFwdLineInd > 4) this.currentFwdLineInd = 1;
+        if (this.currentFwdLineInd > this.forwardLines.length) this.currentFwdLineInd = 1;
 
-        switch (this.currentFwdLineInd) {
-            case 1:
-               line = this.firstLine;
-               break;
-            case 2:
-               line = this.secondLine;
-               break; 
-            case 3:
-               line = this.thirdLine;
-               break; 
-            case 4:
-               line = this.fourthLine;
-               break; 
-        }
-
+        line = this.forwardLines[this.currentFwdLineInd - 1];
         line.resetTime();
 
         return line;
@@ -132,20 +136,9 @@ class TeamLines {
 
         this.currentDefLineInd++;
 
-        if (this.currentDefLineInd > 3) this.currentDefLineInd = 1;
+        if (this.currentDefLineInd > this.defenceLines.length) this.currentDefLineInd = 1;
 
-        switch (this.currentDefLineInd) {
-            case 1:
-               line = this.firstDuo;
-               break;
-            case 2:
-               line = this.secondDuo;
-               break; 
-            case 3:
-               line = this.thirdDuo;
-               break; 
-        }
-
+        line = this.defenceLines[this.currentDefLineInd - 1];
         line.resetTime();
 
         return line;
@@ -177,8 +170,8 @@ class TeamLines {
     }
 
     resetLines(): void {
-        this.currentFwdLine = this.firstLine;
-        this.currentDefLine = this.firstDuo;
+        this.currentFwdLine = this.forwardLines[0];
+        this.currentDefLine = this.defenceLines[0];
         this.currentFwdLineInd = 1;
         this.currentDefLineInd = 1;
         
@@ -187,12 +180,12 @@ class TeamLines {
     }
 
     resetScore(): void {
-        this.firstLine.resetScore();
-        this.secondLine.resetScore();
-        this.thirdLine.resetScore();
-        this.fourthLine.resetScore();
-        this.firstDuo.resetScore();
-        this.secondDuo.resetScore();
-        this.thirdDuo.resetScore();
+        for (let forwardLine of this.forwardLines) {
+            forwardLine.resetScore();
+        }
+
+        for (let defenceLine of this.defenceLines) {
+            defenceLine.resetScore();
+        }
     }
 }

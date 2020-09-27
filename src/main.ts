@@ -17,6 +17,9 @@
 /// <reference path="references.ts" />
 
 let game: Game;
+let league: League;
+
+league = new League();
 document.getElementById("defaultTab").click();
 
 function btnSimulate_Click(): void {
@@ -55,6 +58,63 @@ function btnEditLines_Click(btn: HTMLButtonElement): void {
     }
 
     playersList.innerHTML = htmlPlayers;
+
+    let tblLines = document.getElementById("tblTeams") as HTMLTableElement;
+    let linesContent = "";
+    let maxLines = Math.max(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
+
+    for (let i = 1; i <= maxLines; i++) {
+        linesContent += "<tr><td>" + getLineName(i) + " Line</td></tr>";
+
+        if (i <= league.settings.nbOffensiveLine) {
+            linesContent += "<tr><td>Left Wing</td><td>Center</td><td>Right Wing</td><td>TOI</td></tr>";
+            linesContent += "<tr>";
+            linesContent += "<td><p id=\"lw" + i + "\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>";
+            linesContent += "<td><p id=\"c" + i + "\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>";
+            linesContent += "<td><p id=\"rw" + i + "\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>";
+            linesContent += "<td><input id=\"toiF" + i + "\" class=\"teamLine\" type=\"text\"></td>";
+            linesContent += "</tr>";
+        }
+
+        if (i <= league.settings.nbDefensiveLine) {
+            linesContent += "<tr><td>Left Defenceman</td><td>Right Defenceman</td><td>TOI</td></tr>";
+            linesContent += "<tr>";
+            linesContent += "<td><p id=\"ld" + i + "\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>";
+            linesContent += "<td><p id=\"rd" + i + "\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>";
+            linesContent += "<td><input id=\"toiD" + i + "\" class=\"teamLine\" type=\"text\"></td>";
+            linesContent += "</tr>";
+        }
+    }
+
+    linesContent += "<tr><td>Goalies</td></tr>";
+    linesContent += "<tr><td>1</td><td>2</td></tr>"
+    linesContent += "<tr>"
+    linesContent += "<td><p id=\"g1\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>"
+    linesContent += "<td><p id=\"g2\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>"
+    linesContent += "<td><button onclick=\"btnSaveLines_Click()\">Save</button></td>"
+    linesContent += "<td><button onclick=\"btnAutoLines_Click()\">Auto</button></td>"
+    linesContent += "</tr>"
+
+    tblLines.innerHTML = linesContent;
+}
+
+function getLineName(lineNumber: number) : string {
+    let name = "";
+
+    switch (lineNumber) {
+        case 1: name = "First";
+            break;
+        case 2: name = "Second";
+            break;
+        case 3: name = "Third";
+            break;
+        case 4: name = "Fourth";
+            break;
+        default: name = "Other";
+            break;
+    }
+
+    return name;
 }
 
 function btnNewGame_Click(): void {
@@ -118,15 +178,21 @@ function btnSaveLines_Click(): void {
 
     if (!checkLines()) return;
 
-    let f1 = new ForwardLine(getSkaterFromLine(currentTeam, "lw1"), getSkaterFromLine(currentTeam, "c1"), getSkaterFromLine(currentTeam, "rw1"), 80);
-    let f2 = new ForwardLine(getSkaterFromLine(currentTeam, "lw2"), getSkaterFromLine(currentTeam, "c2"), getSkaterFromLine(currentTeam, "rw2"), 60);
-    let f3 = new ForwardLine(getSkaterFromLine(currentTeam, "lw3"), getSkaterFromLine(currentTeam, "c3"), getSkaterFromLine(currentTeam, "rw3"), 40);
-    let f4 = new ForwardLine(getSkaterFromLine(currentTeam, "lw4"), getSkaterFromLine(currentTeam, "c4"), getSkaterFromLine(currentTeam, "rw4"), 20);
-    let d1 = new DefenceLine(getSkaterFromLine(currentTeam, "ld1"), getSkaterFromLine(currentTeam, "rd1"), 70);
-    let d2 = new DefenceLine(getSkaterFromLine(currentTeam, "ld2"), getSkaterFromLine(currentTeam, "rd2"), 50);
-    let d3 = new DefenceLine(getSkaterFromLine(currentTeam, "ld3"), getSkaterFromLine(currentTeam, "rd3"), 30);
+    currentTeam.lines = new TeamLines();
 
-    currentTeam.lines = new TeamLines(f1, f2, f3, f4, d1, d2, d3, getGoalieFromLine(currentTeam, "g1"), getGoalieFromLine(currentTeam, "g2"));
+    let toi = 80;
+    for (let i = 1; i <= league.settings.nbOffensiveLine; i++) {
+        currentTeam.lines.addForwardLine(new ForwardLine(getSkaterFromLine(currentTeam, "lw" + i), getSkaterFromLine(currentTeam, "c" + i), getSkaterFromLine(currentTeam, "rw" + i), toi, i));
+        toi -= 20;
+    }
+
+    toi = 70
+    for (let i = 1; i <= league.settings.nbDefensiveLine; i++) {
+        currentTeam.lines.addDefenceLine(new DefenceLine(getSkaterFromLine(currentTeam, "ld" + i), getSkaterFromLine(currentTeam, "rd" + i), toi, i));
+        toi -= 20;
+    }
+
+    currentTeam.lines.addGoalies(getGoalieFromLine(currentTeam, "g1"), getGoalieFromLine(currentTeam, "g2"));
 }
 
 function btnSaveSettings_Click(): void {

@@ -115,13 +115,13 @@ class Game {
     
         for (var p = 1; p <= this.nbPeriod; p++) {
             let per = {name: "Period " + p, goals: []};
+
+            this.homeTeam.lines.resetLines();
+            this.awayTeam.lines.resetLines();
     
             for (var i = 0; i < 60 * this.periodLength; i++) {
                 this.simulateMin(i, per);
             }
-    
-            this.homeTeam.lines.resetLines();
-            this.awayTeam.lines.resetLines();
     
             sb.periods.push(per);
         }
