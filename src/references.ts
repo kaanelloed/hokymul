@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+/// <reference path="calendar.ts" />
 /// <reference path="game.ts" />
 /// <reference path="league.ts" />
 /// <reference path="player.ts" />

@@ -197,8 +197,15 @@ function btnSaveLines_Click(): void {
 
 function btnSaveSettings_Click(): void {
     if (game === undefined) return;
+}
 
+function btnGenCal_Click(): void {
+    if (game === undefined) return;
 
+    league.generateLeague();
+
+    let calendar = new Calendar(league);
+    calendar.generate();
 }
 
 function checkLines(): boolean {
