@@ -23,14 +23,14 @@ league = new League();
 document.getElementById("defaultTab").click();
 
 function btnSimulate_Click(): void {
-    if (game === undefined) return;
+    /*if (game === undefined) return;
     if (!game.homeTeam.isLinesSet() || !game.awayTeam.isLinesSet()) return;
-    game.simulate();
-}
+    game.simulate();*/
 
-function btnGeneratePlayers_Click(): void {
-    if (game === undefined) return;
-    game.generatePlayers();
+    if (league === undefined) return;
+
+    league.simulateDay();
+    document.getElementById("tblGames").innerHTML = league.generateGameDayResultTable();
 }
 
 function btnEditLines_Click(btn: HTMLButtonElement): void {
@@ -118,8 +118,20 @@ function getLineName(lineNumber: number) : string {
 }
 
 function btnNewGame_Click(): void {
-    game = new Game();
-    game.generatePlayers();
+    league = new League();
+    league.generateTestLeague();
+
+    league.setTodayGames();
+    document.getElementById("tblGames").innerHTML = league.generateGameDayTable();
+    document.getElementById("currDate").innerHTML = league.currentDate.toLocaleDateString();
+}
+
+function btnNextDay_Click(): void {
+    if (league === undefined) return;
+
+    league.goToNextDay();
+    document.getElementById("tblGames").innerHTML = league.generateGameDayTable();
+    document.getElementById("currDate").innerHTML = league.currentDate.toLocaleDateString();
 }
 
 function btnTab_Click(btn: HTMLButtonElement): void {
@@ -197,15 +209,6 @@ function btnSaveLines_Click(): void {
 
 function btnSaveSettings_Click(): void {
     if (game === undefined) return;
-}
-
-function btnGenCal_Click(): void {
-    if (game === undefined) return;
-
-    league.generateLeague();
-
-    let calendar = new Calendar(league);
-    calendar.generate();
 }
 
 function checkLines(): boolean {

@@ -16,8 +16,11 @@
 
 class League {
     settings: LeagueSettings;
+    calendar: Calendar;
     conferences: Conference[];
     interGames: number;
+    currentDate: Date;
+    todayGames: GamesDay;
 
     constructor() {
         this.settings = new LeagueSettings();
@@ -45,7 +48,7 @@ class League {
         return teams;
     }
 
-    generateLeague() {
+    generateTestLeague() {
         let teamDiv1 = ["Boston", "Buffalo", "Detroit", "Florida", "Montréal", "Ottawa", "Tampa Bay", "Toronto"];
         let teamDiv2 = ["Carolina", "Columbus", "New Jersey", "New York I", "New York R", "Philadelphia", "Pittsburgh", "Washington"];
         let teamDiv3 = ["Arizona", "Chicago", "Colorado", "Dallas", "Minnesota", "Nashville", "St. Louis", "Winniped"];
@@ -64,21 +67,29 @@ class League {
 
         for (let str of teamDiv1) {
             let team = new Team(i++, str);
+            team.generateTeamPlayers();
+            team.autoLine();
             div1.addTeam(team);
         }
 
         for (let str of teamDiv2) {
             let team = new Team(i++, str);
+            team.generateTeamPlayers();
+            team.autoLine();
             div2.addTeam(team);
         }
 
         for (let str of teamDiv3) {
             let team = new Team(i++, str);
+            team.generateTeamPlayers();
+            team.autoLine();
             div3.addTeam(team);
         }
 
         for (let str of teamDiv4) {
             let team = new Team(i++, str);
+            team.generateTeamPlayers();
+            team.autoLine();
             div4.addTeam(team);
         }
 
@@ -89,6 +100,60 @@ class League {
         conf2.addDivisions(div3, div4);
 
         league.addConferences(conf1, conf2);
+
+        let calendar = new CalendarGenerator(league);
+        calendar.generate();
+    }
+
+    goToNextDay() : void {
+        this.currentDate.setDate(this.currentDate.getDate() + 1);
+        this.setTodayGames();
+    }
+
+    setTodayGames(): void {
+        this.todayGames = this.calendar.gamesDays.find(r => r.date.valueOf() === this.currentDate.valueOf());
+    }
+
+    generateGameDayTable(): string {
+        let gameDay: GameDay;
+        let strTable: string;
+        let i: number = 1;
+
+        strTable = "<tr><td><i>Home</i></td><td><i>Away</i></td></tr>"
+
+        for(gameDay of this.todayGames.games) {
+            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${gameDay.homeTeam.name}</td><td>${gameDay.awayTeam.name}</td></tr>`;
+            i++;
+        }
+
+        return strTable;
+    }
+
+    generateGameDayResultTable(): string {
+        let gameDay: GameDay;
+        let strTable: string;
+        let i: number = 1;
+
+        strTable = "<tr><td><i>Home</i></td><td><i>Away</i></td></tr>"
+
+        for(gameDay of this.todayGames.games) {
+            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${gameDay.homeTeam.name} ${gameDay.game.homeTeam.goal}</td><td>${gameDay.awayTeam.name} ${gameDay.game.awayTeam.goal}</td></tr>`;
+            i++;
+        }
+
+        return strTable;
+    }
+
+    simulateDay(): void {
+        let gameDay: GameDay;
+
+        for(gameDay of this.todayGames.games) {
+            let game: Game;
+
+            game = new Game(gameDay.homeTeam, gameDay.awayTeam);
+            game.simulate();
+            gameDay.game = game;
+        }
     }
 }
 

@@ -60,6 +60,16 @@ class Player {
 
         return text;
     }
+
+    static generatePlayerName(): string {
+        let indexFN = randomBetween(0, canadaMaleFirstNames.length - 1);
+        let indexLN = randomBetween(0, canadaLastNames.length - 1);
+    
+        let firstName = canadaMaleFirstNames[indexFN];
+        let lastName = canadaLastNames[indexLN];
+    
+        return firstName + " " + lastName;
+    }
 }
 
 enum PlayerPosition {

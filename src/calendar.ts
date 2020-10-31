@@ -15,6 +15,45 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 class Calendar {
+    gamesDays: GamesDay[];
+
+    constructor() {
+        this.gamesDays = [];
+    }
+
+    addGameDay(gamesDay: GamesDay): void {
+        this.gamesDays.push(gamesDay);
+    }
+}
+
+class GamesDay {
+    date: Date;
+    games: GameDay[];
+
+    constructor(date: Date) {
+        this.date = date;
+        this.games = [];
+    }
+
+    addGameDay(gameDay: GameDay): void {
+        this.games.push(gameDay);
+    }
+}
+
+class GameDay {
+    homeTeam: Team;
+    awayTeam: Team;
+    game: Game;
+
+    constructor(home: Team, away: Team) {
+        this.homeTeam = home;
+        this.awayTeam = away;
+
+        this.game = undefined;
+    }
+}
+
+class CalendarGenerator {
     league: League;
     seasonStart: Date;
     seasonEnd: Date;
@@ -30,16 +69,19 @@ class Calendar {
     }
 
     generate(): void {
+        let calendar: Calendar;
         let currentDate: Date;
         let daysLeft: number;
         let availDays: number;
 
+        calendar = new Calendar();
         let calLeague = new CalendarLeague(this.league);
 
-        currentDate = this.seasonStart;
+        currentDate = new Date(this.seasonStart);
         availDays = this.maxConsectiveGame / (this.maxConsectiveGame + 1);
 
         while (currentDate.valueOf() <= this.seasonEnd.valueOf()) {
+            let gamesDay = new GamesDay(new Date(currentDate));
             calLeague.resetToday();
             daysLeft = Math.floor(this.daysDifference(currentDate, this.seasonEnd) * availDays);
 
@@ -51,13 +93,18 @@ class Calendar {
                     
                     if (away !== undefined) {
                         calTeam.createHomeGame(away);
-                        console.log(`${currentDate.toLocaleDateString("fr-CA")} - ${calTeam.team.name} vs ${away.team.name}`);
+                        gamesDay.addGameDay(new GameDay(calTeam.team, away.team));
+                        //console.log(`${currentDate.toLocaleDateString("fr-CA")} - ${calTeam.team.name} vs ${away.team.name}`);
                     }
                 }
             }
 
+            calendar.addGameDay(gamesDay);
             currentDate.setDate(currentDate.getDate() + 1);
         }
+
+        league.calendar = calendar;
+        league.currentDate = this.seasonStart;
     }
 
     private getTotalMsInDay(): number {

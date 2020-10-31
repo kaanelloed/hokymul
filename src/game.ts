@@ -95,7 +95,7 @@ class Game {
     homeTeam: Team;
     awayTeam: Team;
 
-    constructor() {
+    constructor(homeTeam: Team, awayTeam: Team) {
         this.scoringRate = 1.5;
         this.scoreModifier = 0.02;
         this.periodLength = 20;
@@ -103,8 +103,8 @@ class Game {
 
         this.goalieBase = 0.6;
 
-        this.homeTeam = new Team(1, "Home Team");
-        this.awayTeam = new Team(2, "Away Team");
+        this.homeTeam = homeTeam;
+        this.awayTeam = awayTeam;
     }
 
     simulate(): void {
@@ -235,49 +235,8 @@ class Game {
         return skater;
     }
     
-    generatePlayerName(): string {
-        let indexFN = randomBetween(0, canadaMaleFirstNames.length - 1);
-        let indexLN = randomBetween(0, canadaLastNames.length - 1);
-    
-        let firstName = canadaMaleFirstNames[indexFN];
-        let lastName = canadaLastNames[indexLN];
-    
-        return firstName + " " + lastName;
-    }
-    
     generatePlayers(): void {
-        this.generateTeamPlayers(this.homeTeam);
-        this.generateTeamPlayers(this.awayTeam);
-    
         document.getElementById("team1").innerHTML = this.homeTeam.getPlayersTable();
         document.getElementById("team2").innerHTML = this.awayTeam.getPlayersTable();
-    }
-    
-    generateTeamPlayers(team: Team) {
-        let id = 0;
-        team.players = [];
-    
-        id = this.generateSkatersForPosition(team, PlayerPosition.leftWing, 60, 85, 55, 80, 4, id);
-        id = this.generateSkatersForPosition(team, PlayerPosition.center, 60, 85, 55, 80, 4, id);
-        id = this.generateSkatersForPosition(team, PlayerPosition.rightWing, 60, 85, 55, 80, 4, id);
-        id = this.generateSkatersForPosition(team, PlayerPosition.leftDefenceman, 60, 85, 55, 80, 3, id);
-        id = this.generateSkatersForPosition(team, PlayerPosition.rightDefenceman, 55, 80, 65, 85, 3, id);
-        id = this.generateGoalies(team, 70, 85, 2, id);
-    }
-
-    generateSkatersForPosition(team: Team, pos: PlayerPosition, minOffence: number, maxOffence: number, minDefence: number, maxDefence: number, nbToGenerate: number, startingId: number): number {
-        for(let i = 0; i < nbToGenerate; i++) {
-            new Skater(startingId++, this.generatePlayerName(), team, pos, randomBetween(minOffence, maxOffence), randomBetween(minDefence, maxDefence));
-        }
-
-        return startingId;
-    }
-
-    generateGoalies(team: Team, minOveral: number, maxOveral: number, nbToGenerate: number, startingId: number): number {
-        for(let i = 0; i < nbToGenerate; i++) {
-            new Goalie(startingId++, this.generatePlayerName(), team, randomBetween(minOveral, maxOveral));
-        }
-
-        return startingId;
     }
 }
