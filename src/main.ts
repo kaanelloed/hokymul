@@ -303,10 +303,17 @@ function btnAutoLines_Click(): void {
     autoLinesByPosition(goalies, "g");
 }
 
-function autoLinesByPosition(players: Player[], idStart: string) {
+function autoLinesByPosition(players: Player[], idStart: string): void {
     players.sort((a, b) => b.ov - a.ov);
     let i = 1;
     for (let player of players) {
         setPlayerToElement(player, document.getElementById(idStart + i++));
     }
+}
+
+function toggleScore(id: number): void {
+    let elem: HTMLElement;
+
+    elem = document.getElementById("gameScore" + id);
+    elem.hidden = !elem.hidden;
 }

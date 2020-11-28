@@ -87,6 +87,8 @@ class GameGoal {
 }
 
 class Game {
+    score: ScoreBoard;
+    date: Date;
     scoringRate: number;
     scoreModifier: number;
     periodLength: number;
@@ -95,7 +97,8 @@ class Game {
     homeTeam: Team;
     awayTeam: Team;
 
-    constructor(homeTeam: Team, awayTeam: Team) {
+    constructor(date: Date, homeTeam: Team, awayTeam: Team) {
+        this.date = date;
         this.scoringRate = 1.5;
         this.scoreModifier = 0.02;
         this.periodLength = 20;
@@ -108,7 +111,7 @@ class Game {
     }
 
     simulate(): void {
-        let sb = new ScoreBoard(1, new Date(), this.homeTeam , this.awayTeam)
+        this.score = new ScoreBoard(1, this.date, this.homeTeam , this.awayTeam)
     
         this.homeTeam.resetScore();
         this.awayTeam.resetScore();
@@ -123,7 +126,7 @@ class Game {
                 this.simulateMin(i, per);
             }
     
-            sb.periods.push(per);
+            this.score.periods.push(per);
         }
     
         if (this.homeTeam.goal === this.awayTeam.goal) {
@@ -138,10 +141,8 @@ class Game {
                 i++;
             }
     
-            sb.periods.push(per);
+            this.score.periods.push(per);
         }
-    
-        document.getElementById("game").innerHTML = sb.toString();
     }
     
     simulateMin(time: number, period: GamePeriod): boolean {

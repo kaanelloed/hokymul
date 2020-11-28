@@ -134,10 +134,11 @@ class League {
         let strTable: string;
         let i: number = 1;
 
-        strTable = "<tr><td><i>Home</i></td><td><i>Away</i></td></tr>"
+        strTable = "<tr><td><i>Home</i></td><td><i>Away</i></td><td></td></tr>"
 
         for(gameDay of this.todayGames.games) {
-            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${gameDay.homeTeam.name} ${gameDay.game.homeTeam.goal}</td><td>${gameDay.awayTeam.name} ${gameDay.game.awayTeam.goal}</td></tr>`;
+            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${gameDay.homeTeam.name} ${gameDay.game.homeTeam.goal}</td><td>${gameDay.awayTeam.name} ${gameDay.game.awayTeam.goal}</td><td onclick="toggleScore(${i})">↓</td></tr>`;
+            strTable += `<tr id="gameScore${i}" hidden><td colspan="3">${gameDay.game.score.toString()}</td></tr>`;
             i++;
         }
 
@@ -150,7 +151,7 @@ class League {
         for(gameDay of this.todayGames.games) {
             let game: Game;
 
-            game = new Game(gameDay.homeTeam, gameDay.awayTeam);
+            game = new Game(this.currentDate, gameDay.homeTeam, gameDay.awayTeam);
             game.simulate();
             gameDay.game = game;
         }
