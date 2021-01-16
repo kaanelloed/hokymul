@@ -28,7 +28,7 @@ function btnSimulate_Click(): void {
     game.simulate();*/
 
     if (league === undefined) return;
-
+    
     league.simulateDay();
     document.getElementById("tblGames").innerHTML = league.generateGameDayResultTable();
 }
