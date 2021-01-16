@@ -16,6 +16,9 @@
 
 class Calendar {
     gamesDays: GamesDay[];
+    seasonStart: Date;
+    seasonEnd: Date;
+    seasonLength: number;
 
     constructor() {
         this.gamesDays = [];
@@ -61,6 +64,7 @@ class CalendarGenerator {
     seasonEnd: Date;
     maxConsectiveGame: number;
     msInDay: number;
+    seasonLength: number;
 
     constructor(league: League) {
         this.league = league;
@@ -68,6 +72,7 @@ class CalendarGenerator {
         this.seasonEnd = new Date(2021, 3, 3);
         this.maxConsectiveGame = 2;
         this.msInDay = this.getTotalMsInDay();
+        this.seasonLength = this.daysDifference(this.seasonStart, this.seasonEnd)
     }
 
     generate(): void {
@@ -104,6 +109,10 @@ class CalendarGenerator {
             calendar.addGameDay(gamesDay);
             currentDate.setDate(currentDate.getDate() + 1);
         }
+
+        calendar.seasonStart = this.seasonStart;
+        calendar.seasonEnd = this.seasonEnd;
+        calendar.seasonLength = this.seasonLength;
 
         league.calendar = calendar;
         league.currentDate = this.seasonStart;

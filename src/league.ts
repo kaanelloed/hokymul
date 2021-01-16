@@ -21,6 +21,8 @@ class League {
     interGames: number;
     currentDate: Date;
     todayGames: GamesDay;
+    salaryCap: number;
+    floorCap: number;
 
     constructor() {
         this.settings = new LeagueSettings();

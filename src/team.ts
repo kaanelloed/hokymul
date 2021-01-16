@@ -134,3 +134,47 @@ class TeamResults {
         return this.win + this.otl + this.lose;
     }
 }
+
+class TeamCapHit {
+    projectedCapHit: number;
+    dailyCapHit: number;
+    projectedCapSpace: number;
+    todayCapSpace: number;
+    currentCapSpace: number;
+    tradeDeadlineCapSpace: number;
+
+    public calculateCap(team: Team, league: League) {
+        let totalSalary: number = 0;
+        let salaryOfDay: number;
+        let daysLeft: number;
+        let accruedCapSpace: number;
+        let accruedCapHit: number;
+        let date: Date;
+
+        date = league.calendar.seasonStart;
+        daysLeft = league.calendar.seasonLength;
+        accruedCapHit = league.salaryCap;
+        accruedCapSpace = 0;
+
+        while (date.valueOf() <= league.currentDate.valueOf()) {
+            salaryOfDay = 0;
+            daysLeft--;
+
+            for (let player of team.players) {
+                salaryOfDay += player.salary / league.calendar.seasonLength;
+            }
+
+            totalSalary += salaryOfDay;
+
+            this.projectedCapHit = salaryOfDay * daysLeft + totalSalary;
+            this.dailyCapHit = salaryOfDay * league.calendar.seasonLength;
+
+            this.projectedCapSpace = league.salaryCap - this.projectedCapHit;
+            this.todayCapSpace = league.salaryCap - this.dailyCapHit;
+
+            accruedCapHit += accruedCapSpace;
+            this.currentCapSpace = accruedCapHit - this.dailyCapHit;
+            accruedCapSpace = this.currentCapSpace / daysLeft;
+        }
+    }
+}
