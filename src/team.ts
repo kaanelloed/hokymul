@@ -5,6 +5,7 @@ class Team {
     goal: number;
     lines: TeamLines;
     players: Player[];
+    results: TeamResults;
 
     constructor(id: number, name: string) {
         this.id = id;
@@ -14,6 +15,7 @@ class Team {
         this.players = [];
 
         this.lines = undefined;
+        this.results = new TeamResults();
     }
 
     isLinesSet(): boolean {
@@ -110,5 +112,25 @@ class Team {
 
     private getPlayerDescending(position: PlayerPosition): Player[] {
         return this.players.filter(r => r.pos === position).sort((a, b) => b.ov - a.ov);
+    }
+}
+
+class TeamResults {
+    win: number;
+    lose: number;
+    otl: number;
+
+    constructor() {
+        this.win = 0;
+        this.lose = 0;
+        this.otl = 0;
+    }
+
+    public getPoints() {
+        return this.win * 2 + this.otl;
+    }
+
+    public getGamesPlayed() {
+        return this.win + this.otl + this.lose;
     }
 }

@@ -31,6 +31,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 			<button id="defaultTab" class="tabBtn active" onclick="btnTab_Click(this)" data-divId="tabFile">File</button>
 			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabSimulation">Simulation</button>
 			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabTeams">Teams</button>
+			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabStanding">Standing</button>
+			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabStats">Statistics</button>
 			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabLines">Lines</button>
 			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabSettings">Settings</button>
 		</div>
@@ -62,6 +64,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 					<td><div id="team1"></div></td>
 					<td><div id="team2"></div></td>
 				</tr>
+			</table>
+		</div>
+
+		<div id="tabStanding" class="tabContent">
+			<button onclick="btnStanding_Click()">Update</button>
+			<table id="tblStanding">
+				
+			</table>
+		</div>
+
+		<div id="tabStats" class="tabContent">
+			<button onclick="btnStats_Click()">Update</button>
+			<table id="tblStats">
+				
 			</table>
 		</div>
 

@@ -20,6 +20,7 @@ class Player {
     team: Team;
     pos: PlayerPosition;
     ov: number;
+    salary: number;
 
     constructor(id: number, name: string, team: Team, pos: PlayerPosition, ov: number) {
         this.id = id;
@@ -88,6 +89,7 @@ class Skater extends Player{
     def: number;
     goal: number;
     assist: number;
+    stats: SkaterStatistics;
 
     constructor(id: number, name: string, team: Team, pos: PlayerPosition, off: number, def: number) {
         super(id, name, team, pos, Math.round((off + def) / 2));
@@ -95,6 +97,8 @@ class Skater extends Player{
         this.def = def;
         this.goal = 0;
         this.assist = 0;
+
+        this.stats = new SkaterStatistics();
     }
 
     resetScore(): void {
@@ -106,5 +110,19 @@ class Skater extends Player{
 class Goalie extends Player {
     constructor(id: number, name: string, team: Team, ov: number) {
         super(id, name, team, PlayerPosition.goalie, ov);
+    }
+}
+
+class SkaterStatistics {
+    goal: number;
+    assist: number;
+
+    constructor () {
+        this.goal = 0;
+        this.assist = 0;
+    }
+
+    public getPoints() {
+        return this.goal + this.assist;
     }
 }

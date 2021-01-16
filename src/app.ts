@@ -129,6 +129,9 @@ function btnNewGame_Click(): void {
 function btnNextDay_Click(): void {
     if (league === undefined) return;
 
+    if (!league.todayGames.gamesPlayed)
+        return;
+
     league.goToNextDay();
     document.getElementById("tblGames").innerHTML = league.generateGameDayTable();
     document.getElementById("currDate").innerHTML = league.currentDate.toLocaleDateString();
@@ -316,4 +319,55 @@ function toggleScore(id: number): void {
 
     elem = document.getElementById("gameScore" + id);
     elem.hidden = !elem.hidden;
+}
+
+function btnStanding_Click(): void {
+    let teams: Team[];
+    let table: HTMLElement;
+    let contents: string;
+    let position: number;
+
+    if (league === undefined) return;
+
+    contents = "<tr><td>Position</td><td>Team</td><td>GP</td><td>Win</td><td>Lose</td><td>OTL</td><td>Points</td></tr>";
+    teams = league.getTeams().sort((a, b) => a.results.getPoints() - b.results.getPoints()).reverse();
+
+    position = 1;
+    for (let team of teams) {
+        contents += `<tr><td>${position}</td><td>${team.name}</td><td>${team.results.getGamesPlayed()}</td><td>${team.results.win}</td><td>${team.results.lose}</td><td>${team.results.otl}</td><td>${team.results.getPoints()}</td></tr>`;
+        position++;
+    }
+
+    table = document.getElementById("tblStanding");
+    table.innerHTML = contents;
+}
+
+function btnStats_Click(): void {
+    let players: Player[];
+    let skaters: Skater[] = [];
+    let table: HTMLElement;
+    let contents: string;
+    let rank: number;
+
+    if (league === undefined) return;
+
+    contents = "<tr><td>Rank</td><td>Player</td><td>Team</td><td>GP</td><td>Goal</td><td>Assist</td><td>Points</td></tr>";
+    players = league.getPlayers();
+
+    for (let player of players) {
+        if (player instanceof Skater) {
+            skaters.push(player);
+        }
+    }
+
+    skaters = skaters.sort((a, b) => a.stats.getPoints() - b.stats.getPoints()).reverse();
+
+    rank = 1;
+    for (let skater of skaters) {
+        contents += `<tr><td>${rank}</td><td>${skater.name}</td><td>${skater.team.name}</td><td>${skater.team.results.getGamesPlayed()}</td><td>${skater.stats.goal}</td><td>${skater.stats.assist}</td><td>${skater.stats.getPoints()}</td></tr>`;
+        rank++;
+    }
+
+    table = document.getElementById("tblStats");
+    table.innerHTML = contents;
 }

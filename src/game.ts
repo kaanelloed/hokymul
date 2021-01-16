@@ -111,6 +111,9 @@ class Game {
     }
 
     simulate(): void {
+        let homeTeamWin: Boolean;
+        let overTime: boolean = false;
+
         this.score = new ScoreBoard(1, this.date, this.homeTeam , this.awayTeam)
     
         this.homeTeam.resetScore();
@@ -142,6 +145,29 @@ class Game {
             }
     
             this.score.periods.push(per);
+
+            overTime = true;
+        }
+
+        homeTeamWin = this.homeTeam.goal > this.awayTeam.goal;
+
+        if (overTime) {
+            if (homeTeamWin) {
+                this.homeTeam.results.win++;
+                this.awayTeam.results.otl++;
+            } else {
+                this.homeTeam.results.otl++;
+                this.awayTeam.results.win++;
+            }
+        }
+        else {
+            if (homeTeamWin) {
+                this.homeTeam.results.win++;
+                this.awayTeam.results.lose++;
+            } else {
+                this.homeTeam.results.lose++;
+                this.awayTeam.results.win++;
+            }
         }
     }
     
@@ -168,13 +194,16 @@ class Game {
                 let primAssistSkater = this.getGoalPrimAssist(offenceTeam.lines.currentFwdLine, offenceTeam.lines.currentDefLine, scorer);
                 let secAssistSkater : Skater = undefined;
                 scorer.goal++;
+                scorer.stats.goal++;
 
                 if (primAssistSkater !== undefined) {
                     primAssistSkater.assist++;
+                    primAssistSkater.stats.assist++;
     
                     secAssistSkater = this.getGoalSecAssist(offenceTeam.lines.currentFwdLine, offenceTeam.lines.currentDefLine, scorer, primAssistSkater);
                     if (secAssistSkater !== undefined) {
                         secAssistSkater.assist++;
+                        secAssistSkater.stats.assist++;
                     }
                 }
 

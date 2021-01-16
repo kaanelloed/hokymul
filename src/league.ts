@@ -48,6 +48,16 @@ class League {
         return teams;
     }
 
+    getPlayers(): Player[] {
+        let players: Player[] = [];
+
+        for (let conference of this.conferences) {
+            players = players.concat(conference.getPlayers());
+        }
+
+        return players;
+    }
+
     generateTestLeague() {
         let teamDiv1 = ["Boston", "Buffalo", "Detroit", "Florida", "Montréal", "Ottawa", "Tampa Bay", "Toronto"];
         let teamDiv2 = ["Carolina", "Columbus", "New Jersey", "New York I", "New York R", "Philadelphia", "Pittsburgh", "Washington"];
@@ -148,6 +158,9 @@ class League {
     simulateDay(): void {
         let gameDay: GameDay;
 
+        if (this.todayGames.gamesPlayed)
+            return;
+
         for(gameDay of this.todayGames.games) {
             let game: Game;
 
@@ -155,6 +168,8 @@ class League {
             game.simulate();
             gameDay.game = game;
         }
+
+        this.todayGames.gamesPlayed = true;
     }
 }
 
@@ -202,6 +217,16 @@ class Conference {
 
         return teams;
     }
+
+    getPlayers(): Player[] {
+        let players: Player[] = [];
+
+        for (let division of this.divisions) {
+            players = players.concat(division.getPlayers());
+        }
+
+        return players;
+    }
 }
 
 class Division {
@@ -223,5 +248,15 @@ class Division {
         for (let team of teams) {
             this.addTeam(team);
         }
+    }
+
+    getPlayers(): Player[] {
+        let players: Player[] = [];
+
+        for (let team of this.teams) {
+            players = players.concat(team.players);
+        }
+
+        return players;
     }
 }

@@ -29,10 +29,12 @@ class Calendar {
 class GamesDay {
     date: Date;
     games: GameDay[];
+    gamesPlayed: boolean;
 
     constructor(date: Date) {
         this.date = date;
         this.games = [];
+        this.gamesPlayed = false;
     }
 
     addGameDay(gameDay: GameDay): void {
