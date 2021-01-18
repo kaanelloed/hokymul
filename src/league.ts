@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import {Calendar, GameDay, GamesDay, CalendarGenerator} from './calendar.js'
+import {Game} from './game.js';
+import {Player} from './player.js';
+import {Team} from './team.js';
+
 class League {
     settings: LeagueSettings;
     calendar: Calendar;
@@ -40,6 +45,10 @@ class League {
         }
     }
 
+    getTeam(teamId: number): Team {
+        return this.getTeams().find(t => t.id === teamId)
+    }
+
     getTeams(): Team[] {
         let teams: Team[] = [];
 
@@ -60,7 +69,7 @@ class League {
         return players;
     }
 
-    generateTestLeague() {
+    generateTestLeague(league: League) {
         let teamDiv1 = ["Boston", "Buffalo", "Detroit", "Florida", "Montréal", "Ottawa", "Tampa Bay", "Toronto"];
         let teamDiv2 = ["Carolina", "Columbus", "New Jersey", "New York I", "New York R", "Philadelphia", "Pittsburgh", "Washington"];
         let teamDiv3 = ["Arizona", "Chicago", "Colorado", "Dallas", "Minnesota", "Nashville", "St. Louis", "Winniped"];
@@ -80,28 +89,28 @@ class League {
         for (let str of teamDiv1) {
             let team = new Team(i++, str);
             team.generateTeamPlayers();
-            team.autoLine();
+            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
             div1.addTeam(team);
         }
 
         for (let str of teamDiv2) {
             let team = new Team(i++, str);
             team.generateTeamPlayers();
-            team.autoLine();
+            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
             div2.addTeam(team);
         }
 
         for (let str of teamDiv3) {
             let team = new Team(i++, str);
             team.generateTeamPlayers();
-            team.autoLine();
+            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
             div3.addTeam(team);
         }
 
         for (let str of teamDiv4) {
             let team = new Team(i++, str);
             team.generateTeamPlayers();
-            team.autoLine();
+            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
             div4.addTeam(team);
         }
 
@@ -114,7 +123,7 @@ class League {
         league.addConferences(conf1, conf2);
 
         let calendar = new CalendarGenerator(league);
-        calendar.generate();
+        calendar.generate(league);
     }
 
     goToNextDay() : void {
@@ -262,3 +271,9 @@ class Division {
         return players;
     }
 }
+
+export {
+    League,
+    Division,
+    Conference
+};

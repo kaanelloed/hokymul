@@ -1,11 +1,7 @@
 {
 	"compilerOptions": {
-        "target": "es2017",
-        "types": [ "node" ],
-        "typeRoots": [ "../node_modules/@types" ]
-    },
-
-    "files": [
-        "app.ts"
-    ]
+        "target": "es2020",
+        "module": "es2020",
+        "outDir": "./scripts"
+    }
 }

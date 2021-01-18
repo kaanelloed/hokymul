@@ -22,3 +22,8 @@ function getGameTime(time: number): string {
 function randomBetween(min: number, max: number): number {
     return min + Math.round(Math.random() * (max - min));
 }
+
+export {
+    getGameTime,
+    randomBetween
+};

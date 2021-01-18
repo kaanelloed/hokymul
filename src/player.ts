@@ -14,25 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import {canadaLastNames, canadaMaleFirstNames} from './names/canadaNames.js'
+import {randomBetween} from './utils.js'
+
 class Player {
     id: number;
     name: string;
-    team: Team;
+    teamId: number;
     pos: PlayerPosition;
     ov: number;
     salary: number;
 
-    constructor(id: number, name: string, team: Team, pos: PlayerPosition, ov: number) {
+    constructor(id: number, name: string, teamId: number, pos: PlayerPosition, ov: number) {
         this.id = id;
         this.name = name;
         this.pos = pos;
-        this.setTeam(team);
+        this.teamId = teamId;
         this.ov = ov;
-    }
-
-    setTeam(team: Team): void {
-        this.team = team;
-        team.players.push(this);
     }
 
     getPositionCode(): string {
@@ -91,8 +89,8 @@ class Skater extends Player{
     assist: number;
     stats: SkaterStatistics;
 
-    constructor(id: number, name: string, team: Team, pos: PlayerPosition, off: number, def: number) {
-        super(id, name, team, pos, Math.round((off + def) / 2));
+    constructor(id: number, name: string, teamId: number, pos: PlayerPosition, off: number, def: number) {
+        super(id, name, teamId, pos, Math.round((off + def) / 2));
         this.off = off;
         this.def = def;
         this.goal = 0;
@@ -108,8 +106,8 @@ class Skater extends Player{
 }
 
 class Goalie extends Player {
-    constructor(id: number, name: string, team: Team, ov: number) {
-        super(id, name, team, PlayerPosition.goalie, ov);
+    constructor(id: number, name: string, teamId: number, ov: number) {
+        super(id, name, teamId, PlayerPosition.goalie, ov);
     }
 }
 
@@ -126,3 +124,10 @@ class SkaterStatistics {
         return this.goal + this.assist;
     }
 }
+
+export {
+    Player,
+    Skater,
+    Goalie,
+    PlayerPosition
+};

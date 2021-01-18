@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import {League, Division, Conference} from './league.js';
+import {Game} from './game.js';
+import {Team} from './team.js';
+
 class Calendar {
     gamesDays: GamesDay[];
     seasonStart: Date;
@@ -75,7 +79,7 @@ class CalendarGenerator {
         this.seasonLength = this.daysDifference(this.seasonStart, this.seasonEnd)
     }
 
-    generate(): void {
+    generate(league: League): void {
         let calendar: Calendar;
         let currentDate: Date;
         let daysLeft: number;
@@ -274,4 +278,11 @@ class CalendarTeam {
             this.consecutiveGameDay = 0;
         this.playedToday = false;
     }
-}
+};
+
+export {
+    Calendar,
+    GameDay,
+    GamesDay,
+    CalendarGenerator
+};

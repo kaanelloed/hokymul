@@ -1,3 +1,24 @@
+// Hokymul - Hockey simulator
+// Copyright (C) 2020  David Proulx
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+import {Skater} from './player.js';
+import {ForwardLine, DefenceLine} from './teamLine.js';
+import {Team} from './team.js';
+import {getGameTime} from './utils.js'
+
 class ScoreBoard {
     id: number;
     date: Date;
@@ -55,8 +76,9 @@ class GameGoal {
     secondAssisNumber: number;
     homeGoalNumber: number;
     awayGoalNumber: number;
+    team: Team;
 
-    constructor(time: number, goalScorer: Skater, goalNumber: number, firstAssist: Skater, firstAssisNumber: number, secondAssist: Skater, secondAssisNumber: number, homeGoalNumber: number, awayGoalNumber: number) {
+    constructor(time: number, goalScorer: Skater, goalNumber: number, firstAssist: Skater, firstAssisNumber: number, secondAssist: Skater, secondAssisNumber: number, homeGoalNumber: number, awayGoalNumber: number, team: Team) {
         this.time = time;
         this.goalScorer = goalScorer;
         this.goalNumber = goalNumber;
@@ -66,6 +88,7 @@ class GameGoal {
         this.secondAssisNumber = secondAssisNumber;
         this.homeGoalNumber = homeGoalNumber;
         this.awayGoalNumber = awayGoalNumber;
+        this.team = team;
     }
 
     toString() : string {
@@ -82,7 +105,7 @@ class GameGoal {
             assistString = "Unassisted";
         }
 
-        return `${getGameTime(this.time)} ${this.goalScorer.team.name} ${this.homeGoalNumber}-${this.awayGoalNumber} | ${this.goalScorer.name} (${this.goalNumber}) ${assistString}`
+        return `${getGameTime(this.time)} ${this.team.name} ${this.homeGoalNumber}-${this.awayGoalNumber} | ${this.goalScorer.name} (${this.goalNumber}) ${assistString}`
     }
 }
 
@@ -207,7 +230,7 @@ class Game {
                     }
                 }
 
-                period.goals.push(new GameGoal(time, scorer, scorer.goal, primAssistSkater, primAssistSkater?.assist, secAssistSkater, secAssistSkater?.assist, this.homeTeam.goal, this.awayTeam.goal));
+                period.goals.push(new GameGoal(time, scorer, scorer.goal, primAssistSkater, primAssistSkater?.assist, secAssistSkater, secAssistSkater?.assist, this.homeTeam.goal, this.awayTeam.goal, offenceTeam));
             }
         }
     
@@ -270,3 +293,7 @@ class Game {
         document.getElementById("team2").innerHTML = this.awayTeam.getPlayersTable();
     }
 }
+
+export {
+    Game
+};

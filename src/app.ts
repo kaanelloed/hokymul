@@ -14,13 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-/// <reference path="references.ts" />
+import {League} from './league.js';
+import {Game} from './game.js';
+import {Player, Skater, Goalie, PlayerPosition} from './player.js';
+import {ForwardLine, DefenceLine, TeamLines} from './teamLine.js';
+import {Team} from './team.js';
 
 let game: Game;
 let league: League;
 
+addTabClickEvent();
+
+document.getElementById("btnNewGame").onclick = btnNewGame_Click;
+document.getElementById("btnSimulate").onclick = btnSimulate_Click;
+document.getElementById("btnNextDay").onclick = btnNextDay_Click;
+document.getElementById("btnStanding").onclick = btnStanding_Click;
+document.getElementById("btnStats").onclick = btnStats_Click;
+
 league = new League();
 document.getElementById("defaultTab").click();
+
+function addTabClickEvent() {
+    let tabButtons: HTMLCollectionOf<HTMLButtonElement>;
+
+    tabButtons = document.getElementsByClassName("tabBtn") as HTMLCollectionOf<HTMLButtonElement>;
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].onclick = btnTab_Click;
+    }
+}
 
 function btnSimulate_Click(): void {
     /*if (game === undefined) return;
@@ -119,7 +140,7 @@ function getLineName(lineNumber: number) : string {
 
 function btnNewGame_Click(): void {
     league = new League();
-    league.generateTestLeague();
+    league.generateTestLeague(league);
 
     league.setTodayGames();
     document.getElementById("tblGames").innerHTML = league.generateGameDayTable();
@@ -137,7 +158,7 @@ function btnNextDay_Click(): void {
     document.getElementById("currDate").innerHTML = league.currentDate.toLocaleDateString();
 }
 
-function btnTab_Click(btn: HTMLButtonElement): void {
+function btnTab_Click(ev: MouseEvent): void {
     let tabs: HTMLCollectionOf<HTMLDivElement>;
     let tabButtons: HTMLCollectionOf<HTMLButtonElement>;
 
@@ -150,6 +171,8 @@ function btnTab_Click(btn: HTMLButtonElement): void {
     for (let i = 0; i < tabButtons.length; i++) {
         tabButtons[i].className = tabButtons[i].className.replace(" active", "");
     }
+
+    let btn = ev.target as HTMLButtonElement
 
     document.getElementById(btn.getAttribute("data-divId")).style.display = "block";
     btn.className += " active";
@@ -364,10 +387,15 @@ function btnStats_Click(): void {
 
     rank = 1;
     for (let skater of skaters) {
-        contents += `<tr><td>${rank}</td><td>${skater.name}</td><td>${skater.team.name}</td><td>${skater.team.results.getGamesPlayed()}</td><td>${skater.stats.goal}</td><td>${skater.stats.assist}</td><td>${skater.stats.getPoints()}</td></tr>`;
+        let team = league.getTeam(skater.teamId);
+        contents += `<tr><td>${rank}</td><td>${skater.name}</td><td>${team.name}</td><td>${team.results.getGamesPlayed()}</td><td>${skater.stats.goal}</td><td>${skater.stats.assist}</td><td>${skater.stats.getPoints()}</td></tr>`;
         rank++;
     }
 
     table = document.getElementById("tblStats");
     table.innerHTML = contents;
+}
+
+function name() {
+    
 }

@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import {Skater, Goalie} from './player.js';
+
 class TeamLine {
     time: number;
     currentTOI: number;
@@ -189,3 +191,9 @@ class TeamLines {
         }
     }
 }
+
+export {
+    ForwardLine,
+    DefenceLine,
+    TeamLines
+};

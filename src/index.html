@@ -28,23 +28,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 		<p>Javascript hockey simulator</p>
 
 		<div class="tab">
-			<button id="defaultTab" class="tabBtn active" onclick="btnTab_Click(this)" data-divId="tabFile">File</button>
-			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabSimulation">Simulation</button>
-			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabTeams">Teams</button>
-			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabStanding">Standing</button>
-			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabStats">Statistics</button>
-			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabLines">Lines</button>
-			<button class="tabBtn" onclick="btnTab_Click(this)" data-divId="tabSettings">Settings</button>
+			<button id="defaultTab" class="tabBtn active" data-divId="tabFile">File</button>
+			<button class="tabBtn" data-divId="tabSimulation">Simulation</button>
+			<button class="tabBtn" data-divId="tabTeams">Teams</button>
+			<button class="tabBtn" data-divId="tabStanding">Standing</button>
+			<button class="tabBtn" data-divId="tabStats">Statistics</button>
+			<button class="tabBtn" data-divId="tabLines">Lines</button>
+			<button class="tabBtn" data-divId="tabSettings">Settings</button>
 		</div>
 		
 		<div id="tabFile" class="tabContent">
-			<button onclick="btnNewGame_Click()">New</button>
+			<button id="btnNewGame">New</button>
 		</div>
 
 		<div id="tabSimulation" class="tabContent">
 			<p id="currDate"></p>
-			<button onclick="btnSimulate_Click()">Simulate</button>
-			<button onclick="btnNextDay_Click()">Next Day</button>
+			<button id="btnSimulate">Simulate</button>
+			<button id="btnNextDay">Next Day</button>
 			<table id="tblGames"></table>
 		</div>
 
@@ -68,14 +68,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 		</div>
 
 		<div id="tabStanding" class="tabContent">
-			<button onclick="btnStanding_Click()">Update</button>
+			<button id="btnStanding">Update</button>
 			<table id="tblStanding">
 				
 			</table>
 		</div>
 
 		<div id="tabStats" class="tabContent">
-			<button onclick="btnStats_Click()">Update</button>
+			<button id="btnStats">Update</button>
 			<table id="tblStats">
 				
 			</table>
@@ -117,6 +117,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>. -->
 	</body>
 	
 	<!-- <script type="module" src="main.js"></script> -->
-	<script src="scripts/app.js"></script>
+	<script type="module" src="scripts/app.js"></script>
 	<noscript>You need Javascript</noscript>
 </html> 
