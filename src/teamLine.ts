@@ -49,6 +49,15 @@ class ForwardLine extends TeamLine {
         this.center.resetScore();
         this.rightWing.resetScore();
     }
+
+    static fromObject(obj: any): ForwardLine {
+        let inst: ForwardLine;
+
+        inst = obj;
+        inst = Object.assign(new ForwardLine(undefined, undefined, undefined, 0, 0), obj);
+
+        return inst;
+    }
 }
 
 class DefenceLine extends TeamLine {
@@ -64,6 +73,15 @@ class DefenceLine extends TeamLine {
     resetScore(): void {
         this.leftDefenceman.resetScore();
         this.rightDefenceman.resetScore();
+    }
+
+    static fromObject(obj: any): DefenceLine {
+        let inst: DefenceLine;
+
+        inst = obj;
+        inst = Object.assign(new DefenceLine(undefined, undefined, 0, 0), obj);
+
+        return inst;
     }
 }
 
@@ -189,6 +207,24 @@ class TeamLines {
         for (let defenceLine of this.defenceLines) {
             defenceLine.resetScore();
         }
+    }
+
+    static fromObject(obj: any): TeamLines {
+        let inst: TeamLines;
+
+        inst = obj;
+        inst = Object.assign(new TeamLines(), obj);
+        inst.currentFwdLine = ForwardLine.fromObject(inst.currentFwdLine);
+        inst.currentDefLine = DefenceLine.fromObject(inst.currentDefLine);
+
+        for (let i = 0; i < inst.forwardLines.length; i++) {
+            inst.forwardLines[i] = ForwardLine.fromObject(inst.forwardLines[i]);
+        }
+        for (let i = 0; i < inst.defenceLines.length; i++) {
+            inst.defenceLines[i] = DefenceLine.fromObject(inst.defenceLines[i]);
+        }
+
+        return inst;
     }
 }
 

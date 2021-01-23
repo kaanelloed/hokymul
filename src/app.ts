@@ -14,24 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import {League} from './league.js';
-import {Game} from './game.js';
 import {Player, Skater, Goalie, PlayerPosition} from './player.js';
 import {ForwardLine, DefenceLine, TeamLines} from './teamLine.js';
 import {Team} from './team.js';
+import {HokymulLeague} from './hokymulLeague.js'
 
-let game: Game;
-let league: League;
+const { ipcRenderer } = require('electron')
+
+let hokyLeague: HokymulLeague = undefined;
 
 addTabClickEvent();
 
 document.getElementById("btnNewGame").onclick = btnNewGame_Click;
+document.getElementById("btnSave").onclick = saveHokymul_Click;
+document.getElementById("btnOpen").onclick = openHokymul_Click;
 document.getElementById("btnSimulate").onclick = btnSimulate_Click;
 document.getElementById("btnNextDay").onclick = btnNextDay_Click;
 document.getElementById("btnStanding").onclick = btnStanding_Click;
 document.getElementById("btnStats").onclick = btnStats_Click;
 
-league = new League();
 document.getElementById("defaultTab").click();
 
 function addTabClickEvent() {
@@ -44,19 +45,16 @@ function addTabClickEvent() {
 }
 
 function btnSimulate_Click(): void {
-    /*if (game === undefined) return;
-    if (!game.homeTeam.isLinesSet() || !game.awayTeam.isLinesSet()) return;
-    game.simulate();*/
-
-    if (league === undefined) return;
+    if (hokyLeague === undefined) return;
     
-    league.simulateDay();
-    document.getElementById("tblGames").innerHTML = league.generateGameDayResultTable();
+    hokyLeague.mainLeague.simulateDay();
+    document.getElementById("tblGames").innerHTML = hokyLeague.mainLeague.generateGameDayResultTable();
 }
 
 function btnEditLines_Click(btn: HTMLButtonElement): void {
-    if (game === undefined) return;
+    if (hokyLeague === undefined) return;
     let teamId = Number(btn.getAttribute("data-teamid"));
+    let game = undefined;
 
     let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
     let lineTeam = document.getElementById("lineTeamName");
@@ -82,12 +80,12 @@ function btnEditLines_Click(btn: HTMLButtonElement): void {
 
     let tblLines = document.getElementById("tblTeams") as HTMLTableElement;
     let linesContent = "";
-    let maxLines = Math.max(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
+    let maxLines = Math.max(hokyLeague.mainLeague.settings.nbOffensiveLine, hokyLeague.mainLeague.settings.nbDefensiveLine);
 
     for (let i = 1; i <= maxLines; i++) {
         linesContent += "<tr><td>" + getLineName(i) + " Line</td></tr>";
 
-        if (i <= league.settings.nbOffensiveLine) {
+        if (i <= hokyLeague.mainLeague.settings.nbOffensiveLine) {
             linesContent += "<tr><td>Left Wing</td><td>Center</td><td>Right Wing</td><td>TOI</td></tr>";
             linesContent += "<tr>";
             linesContent += "<td><p id=\"lw" + i + "\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>";
@@ -97,7 +95,7 @@ function btnEditLines_Click(btn: HTMLButtonElement): void {
             linesContent += "</tr>";
         }
 
-        if (i <= league.settings.nbDefensiveLine) {
+        if (i <= hokyLeague.mainLeague.settings.nbDefensiveLine) {
             linesContent += "<tr><td>Left Defenceman</td><td>Right Defenceman</td><td>TOI</td></tr>";
             linesContent += "<tr>";
             linesContent += "<td><p id=\"ld" + i + "\" class=\"teamLine\" ondrop=\"drop_handler(event)\" ondragover=\"dragover_handler(event)\">?</p></td>";
@@ -139,23 +137,44 @@ function getLineName(lineNumber: number) : string {
 }
 
 function btnNewGame_Click(): void {
-    league = new League();
-    league.generateTestLeague(league);
+    hokyLeague = new HokymulLeague();
+    hokyLeague.generateTestLeague();
 
-    league.setTodayGames();
-    document.getElementById("tblGames").innerHTML = league.generateGameDayTable();
-    document.getElementById("currDate").innerHTML = league.currentDate.toLocaleDateString();
+    hokyLeague.mainLeague.setTodayGames();
+    document.getElementById("tblGames").innerHTML = hokyLeague.mainLeague.generateGameDayTable();
+    document.getElementById("currDate").innerHTML = hokyLeague.mainLeague.currentDate.toLocaleDateString();
+}
+
+function saveHokymul_Click(): void {
+    if (hokyLeague === undefined) return;
+
+    let jsonString: string;
+
+    jsonString = JSON.stringify(hokyLeague);
+
+    ipcRenderer.invoke("saveLeague", "scripts/test.json", jsonString).then((result) => {
+        console.log(result);
+    });
+}
+
+function openHokymul_Click(): void {
+    ipcRenderer.invoke("openLeague", "scripts/test.json").then((result) => {
+        hokyLeague = HokymulLeague.fromObject(JSON.parse(result));
+
+        document.getElementById("tblGames").innerHTML = hokyLeague.mainLeague.generateGameDayTable();
+        document.getElementById("currDate").innerHTML = hokyLeague.mainLeague.currentDate.toLocaleDateString();
+    });
 }
 
 function btnNextDay_Click(): void {
-    if (league === undefined) return;
+    if (hokyLeague === undefined) return;
 
-    if (!league.todayGames.gamesPlayed)
+    if (!hokyLeague.mainLeague.todayGames.gamesPlayed)
         return;
 
-    league.goToNextDay();
-    document.getElementById("tblGames").innerHTML = league.generateGameDayTable();
-    document.getElementById("currDate").innerHTML = league.currentDate.toLocaleDateString();
+        hokyLeague.mainLeague.goToNextDay();
+    document.getElementById("tblGames").innerHTML = hokyLeague.mainLeague.generateGameDayTable();
+    document.getElementById("currDate").innerHTML = hokyLeague.mainLeague.currentDate.toLocaleDateString();
 }
 
 function btnTab_Click(ev: MouseEvent): void {
@@ -192,6 +211,8 @@ function dragover_handler(event: DragEvent) {
 function drop_handler(event: DragEvent) {
     event.preventDefault();
 
+    let game = undefined;
+
     let playerId = Number(event.dataTransfer.getData("text/plain"));
     let teamId = Number(document.getElementById("lineTeamName").getAttribute("data-teamId"));
     let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
@@ -209,7 +230,9 @@ function setPlayerToElement(player: Player, elm: HTMLElement) {
 }
 
 function btnSaveLines_Click(): void {
-    if (game === undefined) return;
+    if (hokyLeague === undefined) return;
+
+    let game = undefined;
 
     let teamId = Number(document.getElementById("lineTeamName").getAttribute("data-teamId"));
     let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
@@ -219,13 +242,13 @@ function btnSaveLines_Click(): void {
     currentTeam.lines = new TeamLines();
 
     let toi = 80;
-    for (let i = 1; i <= league.settings.nbOffensiveLine; i++) {
+    for (let i = 1; i <= hokyLeague.mainLeague.settings.nbOffensiveLine; i++) {
         currentTeam.lines.addForwardLine(new ForwardLine(getSkaterFromLine(currentTeam, "lw" + i), getSkaterFromLine(currentTeam, "c" + i), getSkaterFromLine(currentTeam, "rw" + i), toi, i));
         toi -= 20;
     }
 
     toi = 70
-    for (let i = 1; i <= league.settings.nbDefensiveLine; i++) {
+    for (let i = 1; i <= hokyLeague.mainLeague.settings.nbDefensiveLine; i++) {
         currentTeam.lines.addDefenceLine(new DefenceLine(getSkaterFromLine(currentTeam, "ld" + i), getSkaterFromLine(currentTeam, "rd" + i), toi, i));
         toi -= 20;
     }
@@ -234,7 +257,7 @@ function btnSaveLines_Click(): void {
 }
 
 function btnSaveSettings_Click(): void {
-    if (game === undefined) return;
+    if (hokyLeague === undefined) return;
 }
 
 function checkLines(): boolean {
@@ -281,12 +304,14 @@ function getPlayerFromLine(team: Team, elementId: string): Player {
 }
 
 function btnAutoLines_Click(): void {
-    if (game === undefined) return;
+    if (hokyLeague === undefined) return;
 
     let teamIdStr = document.getElementById("lineTeamName").getAttribute("data-teamId");
 
     if (teamIdStr === null)
         return;
+
+    let game = undefined;
 
     let teamId = Number(teamIdStr);
     let currentTeam = teamId === game.homeTeam.id ? game.homeTeam : game.awayTeam;
@@ -350,10 +375,10 @@ function btnStanding_Click(): void {
     let contents: string;
     let position: number;
 
-    if (league === undefined) return;
+    if (hokyLeague === undefined) return;
 
     contents = "<tr><td>Position</td><td>Team</td><td>GP</td><td>Win</td><td>Lose</td><td>OTL</td><td>Points</td></tr>";
-    teams = league.getTeams().sort((a, b) => a.results.getPoints() - b.results.getPoints()).reverse();
+    teams = hokyLeague.mainLeague.getTeams().sort((a, b) => a.results.getPoints() - b.results.getPoints()).reverse();
 
     position = 1;
     for (let team of teams) {
@@ -372,10 +397,10 @@ function btnStats_Click(): void {
     let contents: string;
     let rank: number;
 
-    if (league === undefined) return;
+    if (hokyLeague === undefined) return;
 
     contents = "<tr><td>Rank</td><td>Player</td><td>Team</td><td>GP</td><td>Goal</td><td>Assist</td><td>Points</td></tr>";
-    players = league.getPlayers();
+    players = hokyLeague.mainLeague.getPlayers();
 
     for (let player of players) {
         if (player instanceof Skater) {
@@ -387,7 +412,7 @@ function btnStats_Click(): void {
 
     rank = 1;
     for (let skater of skaters) {
-        let team = league.getTeam(skater.teamId);
+        let team = hokyLeague.mainLeague.getTeam(skater.teamId);
         contents += `<tr><td>${rank}</td><td>${skater.name}</td><td>${team.name}</td><td>${team.results.getGamesPlayed()}</td><td>${skater.stats.goal}</td><td>${skater.stats.assist}</td><td>${skater.stats.getPoints()}</td></tr>`;
         rank++;
     }

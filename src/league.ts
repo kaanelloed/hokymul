@@ -69,7 +69,8 @@ class League {
         return players;
     }
 
-    generateTestLeague(league: League) {
+    static generateTestLeague(): League {
+        let league: League;
         let teamDiv1 = ["Boston", "Buffalo", "Detroit", "Florida", "Montréal", "Ottawa", "Tampa Bay", "Toronto"];
         let teamDiv2 = ["Carolina", "Columbus", "New Jersey", "New York I", "New York R", "Philadelphia", "Pittsburgh", "Washington"];
         let teamDiv3 = ["Arizona", "Chicago", "Colorado", "Dallas", "Minnesota", "Nashville", "St. Louis", "Winniped"];
@@ -77,6 +78,7 @@ class League {
         let i: number;
 
         i = 1;
+        league = new League();
 
         let conf1: Conference, conf2: Conference;
         let div1: Division, div2: Division, div3: Division, div4: Division;
@@ -124,6 +126,8 @@ class League {
 
         let calendar = new CalendarGenerator(league);
         calendar.generate(league);
+
+        return league;
     }
 
     goToNextDay() : void {
@@ -182,6 +186,19 @@ class League {
 
         this.todayGames.gamesPlayed = true;
     }
+
+    static fromObject(obj: any): League {
+        let inst: League;
+
+        inst = Object.assign(new League(), obj);
+        inst.currentDate = new Date(inst.currentDate);
+        inst.calendar = Calendar.fromObject(inst.calendar);
+        for (let i = 0; i < inst.conferences.length; i++) {
+            inst.conferences[i] = Conference.fromObject(inst.conferences[i]);
+        }
+
+        return inst;
+    }
 }
 
 class LeagueSettings {
@@ -238,6 +255,17 @@ class Conference {
 
         return players;
     }
+
+    static fromObject(obj: any): Conference {
+        let inst: Conference;
+
+        inst = Object.assign(new Conference(), obj);
+        for (let i = 0; i < inst.divisions.length; i++) {
+            inst.divisions[i] = Division.fromObject(inst.divisions[i]);
+        }
+
+        return inst;
+    }
 }
 
 class Division {
@@ -269,6 +297,17 @@ class Division {
         }
 
         return players;
+    }
+
+    static fromObject(obj: any): Division {
+        let inst: Division;
+
+        inst = Object.assign(new Division(), obj);
+        for (let i = 0; i < inst.teams.length; i++) {
+            inst.teams[i] = Team.fromObject(inst.teams[i]);
+        }
+
+        return inst;
     }
 }
 

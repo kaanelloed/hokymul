@@ -133,6 +133,17 @@ class Team {
     private getPlayerDescending(position: PlayerPosition): Player[] {
         return this.players.filter(r => r.pos === position).sort((a, b) => b.ov - a.ov);
     }
+
+    static fromObject(obj: any): Team {
+        let inst: Team;
+
+        inst = obj;
+        inst = Object.assign(new Team(inst.id, inst.name), obj);
+        inst.results = Object.assign(new TeamResults(), inst.results);
+        inst.lines = TeamLines.fromObject(inst.lines);
+
+        return inst;
+    }
 }
 
 class TeamResults {

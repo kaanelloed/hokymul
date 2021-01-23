@@ -31,6 +31,19 @@ class Calendar {
     addGameDay(gamesDay: GamesDay): void {
         this.gamesDays.push(gamesDay);
     }
+
+    static fromObject(obj: any): Calendar {
+        let inst: Calendar;
+
+        inst = Object.assign(new Calendar(), obj);
+        inst.seasonStart = new Date(inst.seasonStart);
+        inst.seasonEnd = new Date(inst.seasonEnd);
+        for (let i = 0; i < inst.gamesDays.length; i++) {
+            inst.gamesDays[i] = GamesDay.fromObject(inst.gamesDays[i]);
+        }
+
+        return inst;
+    }
 }
 
 class GamesDay {
@@ -47,6 +60,18 @@ class GamesDay {
     addGameDay(gameDay: GameDay): void {
         this.games.push(gameDay);
     }
+
+    static fromObject(obj: any): GamesDay {
+        let inst: GamesDay;
+
+        inst = Object.assign(new GamesDay(undefined), obj);
+        inst.date = new Date(inst.date);
+        for (let i = 0; i < inst.games.length; i++) {
+            inst.games[i] = GameDay.fromObject(inst.games[i]);
+        }
+
+        return inst;
+    }
 }
 
 class GameDay {
@@ -59,6 +84,17 @@ class GameDay {
         this.awayTeam = away;
 
         this.game = undefined;
+    }
+
+    static fromObject(obj: any): GameDay {
+        let inst: GameDay;
+        let home: Team
+
+        inst = Object.assign(new GameDay(undefined, undefined), obj);
+        inst.homeTeam = Team.fromObject(inst.homeTeam);
+        inst.awayTeam = Team.fromObject(inst.awayTeam);
+
+        return inst;
     }
 }
 
