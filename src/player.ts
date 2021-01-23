@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import {canadaLastNames, canadaMaleFirstNames} from './names/canadaNames.js'
 import {randomBetween} from './utils.js'
+
+const names = require("./names/defaultNames.json");
 
 class Player {
     id: number;
@@ -61,11 +62,13 @@ class Player {
     }
 
     static generatePlayerName(): string {
-        let indexFN = randomBetween(0, canadaMaleFirstNames.length - 1);
-        let indexLN = randomBetween(0, canadaLastNames.length - 1);
+        let canadaNames = names[0];
+
+        let indexFN = randomBetween(0, canadaNames.MaleFirstNames.length - 1);
+        let indexLN = randomBetween(0, canadaNames.LastNames.length - 1);
     
-        let firstName = canadaMaleFirstNames[indexFN];
-        let lastName = canadaLastNames[indexLN];
+        let firstName = canadaNames.MaleFirstNames[indexFN];
+        let lastName = canadaNames.LastNames[indexLN];
     
         return firstName + " " + lastName;
     }
