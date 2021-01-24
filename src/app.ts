@@ -15,7 +15,7 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {Player, Skater, Goalie, PlayerPosition} from './player.js';
-import {ForwardLine, DefenceLine, TeamLines} from './teamLine.js';
+import {ForwardLine, DefenceLine, GameLines} from './gameLine.js';
 import {Team} from './team.js';
 import {HokymulLeague} from './hokymulLeague.js'
 
@@ -47,7 +47,7 @@ function addTabClickEvent() {
 function btnSimulate_Click(): void {
     if (hokyLeague === undefined) return;
     
-    hokyLeague.mainLeague.simulateDay();
+    hokyLeague.mainLeague.simulateDay(hokyLeague.players);
     document.getElementById("tblGames").innerHTML = hokyLeague.mainLeague.generateGameDayResultTable();
 }
 
@@ -172,7 +172,7 @@ function btnNextDay_Click(): void {
     if (!hokyLeague.mainLeague.todayGames.gamesPlayed)
         return;
 
-        hokyLeague.mainLeague.goToNextDay();
+    hokyLeague.mainLeague.goToNextDay();
     document.getElementById("tblGames").innerHTML = hokyLeague.mainLeague.generateGameDayTable();
     document.getElementById("currDate").innerHTML = hokyLeague.mainLeague.currentDate.toLocaleDateString();
 }
@@ -239,7 +239,7 @@ function btnSaveLines_Click(): void {
 
     if (!checkLines()) return;
 
-    currentTeam.lines = new TeamLines();
+    currentTeam.lines = new GameLines();
 
     let toi = 80;
     for (let i = 1; i <= hokyLeague.mainLeague.settings.nbOffensiveLine; i++) {
@@ -294,7 +294,7 @@ function getGoalieFromLine(team: Team, elementId: string): Goalie {
 function getPlayerFromLine(team: Team, elementId: string): Player {
     let playerId = Number(document.getElementById(elementId).getAttribute("data-playerId"));
 
-    for (let player of team.players) {
+    for (let player of hokyLeague.players) {
         if (playerId === player.id) {
             return player;
         }
@@ -378,7 +378,7 @@ function btnStanding_Click(): void {
     if (hokyLeague === undefined) return;
 
     contents = "<tr><td>Position</td><td>Team</td><td>GP</td><td>Win</td><td>Lose</td><td>OTL</td><td>Points</td></tr>";
-    teams = hokyLeague.mainLeague.getTeams().sort((a, b) => a.results.getPoints() - b.results.getPoints()).reverse();
+    teams = hokyLeague.mainLeague.teams.sort((a, b) => a.results.getPoints() - b.results.getPoints()).reverse();
 
     position = 1;
     for (let team of teams) {
@@ -400,7 +400,7 @@ function btnStats_Click(): void {
     if (hokyLeague === undefined) return;
 
     contents = "<tr><td>Rank</td><td>Player</td><td>Team</td><td>GP</td><td>Goal</td><td>Assist</td><td>Points</td></tr>";
-    players = hokyLeague.mainLeague.getPlayers();
+    players = hokyLeague.players;
 
     for (let player of players) {
         if (player instanceof Skater) {
@@ -408,19 +408,15 @@ function btnStats_Click(): void {
         }
     }
 
-    skaters = skaters.sort((a, b) => a.stats.getPoints() - b.stats.getPoints()).reverse();
+    skaters = skaters.sort((a, b) => b.stats.getPoints() - a.stats.getPoints() || a.stats.gamePlayed - b.stats.gamePlayed);
 
     rank = 1;
     for (let skater of skaters) {
         let team = hokyLeague.mainLeague.getTeam(skater.teamId);
-        contents += `<tr><td>${rank}</td><td>${skater.name}</td><td>${team.name}</td><td>${team.results.getGamesPlayed()}</td><td>${skater.stats.goal}</td><td>${skater.stats.assist}</td><td>${skater.stats.getPoints()}</td></tr>`;
+        contents += `<tr><td>${rank}</td><td>${skater.name}</td><td>${team.name}</td><td>${skater.stats.gamePlayed}</td><td>${skater.stats.goal}</td><td>${skater.stats.assist}</td><td>${skater.stats.getPoints()}</td></tr>`;
         rank++;
     }
 
     table = document.getElementById("tblStats");
     table.innerHTML = contents;
-}
-
-function name() {
-    
 }

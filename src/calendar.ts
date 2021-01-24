@@ -75,24 +75,21 @@ class GamesDay {
 }
 
 class GameDay {
-    homeTeam: Team;
-    awayTeam: Team;
+    homeTeamId: number;
+    awayTeamId: number;
     game: Game;
 
-    constructor(home: Team, away: Team) {
-        this.homeTeam = home;
-        this.awayTeam = away;
+    constructor(homeId: number, awayId: number) {
+        this.homeTeamId = homeId;
+        this.awayTeamId = awayId;
 
         this.game = undefined;
     }
 
     static fromObject(obj: any): GameDay {
         let inst: GameDay;
-        let home: Team
 
         inst = Object.assign(new GameDay(undefined, undefined), obj);
-        inst.homeTeam = Team.fromObject(inst.homeTeam);
-        inst.awayTeam = Team.fromObject(inst.awayTeam);
 
         return inst;
     }
@@ -140,7 +137,7 @@ class CalendarGenerator {
                     
                     if (away !== undefined) {
                         calTeam.createHomeGame(away);
-                        gamesDay.addGameDay(new GameDay(calTeam.team, away.team));
+                        gamesDay.addGameDay(new GameDay(calTeam.team.id, away.team.id));
                         //console.log(`${currentDate.toLocaleDateString("fr-CA")} - ${calTeam.team.name} vs ${away.team.name}`);
                     }
                 }
@@ -181,7 +178,7 @@ class CalendarLeague {
         this.league = league;
 
         for (let conference of league.conferences) {
-            this.calendarConferences.push(new CalendarConference(conference));
+            this.calendarConferences.push(new CalendarConference(conference, league.teams));
         }
     }
 
@@ -230,12 +227,12 @@ class CalendarConference {
     calendarDivisions: CalendarDivison[];
     conference: Conference;
 
-    constructor(conference: Conference) {
+    constructor(conference: Conference, teams: Team[]) {
         this.calendarDivisions = [];
         this.conference = conference;
 
         for (let division of conference.divisions) {
-            this.calendarDivisions.push(new CalendarDivison(division));
+            this.calendarDivisions.push(new CalendarDivison(division, teams));
         }
     }
 
@@ -254,11 +251,13 @@ class CalendarDivison {
     calendarTeams: CalendarTeam[];
     division: Division;
 
-    constructor(division: Division) {
+    constructor(division: Division, teams: Team[]) {
         this.calendarTeams = [];
         this.division = division;
 
-        for (let team of division.teams) {
+        let divTeams = teams.filter(r => r.divisionId === division.divisionId);
+
+        for (let team of divTeams) {
             this.calendarTeams.push(new CalendarTeam(team));
         }
     }

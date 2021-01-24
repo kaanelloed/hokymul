@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import {Skater, Goalie} from './player.js';
+import {Skater, Goalie, Player} from './player.js';
+import { Team } from './team.js';
 
-class TeamLine {
+class GameLine {
     time: number;
     currentTOI: number;
     lineNumber: number;
@@ -32,7 +33,7 @@ class TeamLine {
     }
 }
 
-class ForwardLine extends TeamLine {
+class ForwardLine extends GameLine {
     leftWing: Skater;
     center: Skater;
     rightWing: Skater;
@@ -60,7 +61,7 @@ class ForwardLine extends TeamLine {
     }
 }
 
-class DefenceLine extends TeamLine {
+class DefenceLine extends GameLine {
     leftDefenceman: Skater;
     rightDefenceman: Skater;
 
@@ -85,7 +86,7 @@ class DefenceLine extends TeamLine {
     }
 }
 
-class TeamLines {
+class GameLines {
     forwardLines: ForwardLine[];
     defenceLines: DefenceLine[];
     currentFwdLine: ForwardLine;
@@ -209,11 +210,28 @@ class TeamLines {
         }
     }
 
-    static fromObject(obj: any): TeamLines {
-        let inst: TeamLines;
+    getSkater(): Skater[] {
+        let skaters: Skater[] = [];
+
+        for (let forwardLine of this.forwardLines) {
+            skaters.push(forwardLine.leftWing);
+            skaters.push(forwardLine.center);
+            skaters.push(forwardLine.rightWing);
+        }
+
+        for (let defenceLine of this.defenceLines) {
+            skaters.push(defenceLine.leftDefenceman);
+            skaters.push(defenceLine.rightDefenceman);
+        }
+
+        return skaters;
+    }
+
+    static fromObject(obj: any): GameLines {
+        let inst: GameLines;
 
         inst = obj;
-        inst = Object.assign(new TeamLines(), obj);
+        inst = Object.assign(new GameLines(), obj);
         inst.currentFwdLine = ForwardLine.fromObject(inst.currentFwdLine);
         inst.currentDefLine = DefenceLine.fromObject(inst.currentDefLine);
 
@@ -228,8 +246,22 @@ class TeamLines {
     }
 }
 
+class GameTeam {
+    team: Team;
+    lines: GameLines;
+    shoot: number;
+    goal: number;
+    
+    constructor(team: Team) {
+        this.team = team;
+        this.shoot = 0;
+        this.goal = 0;
+    }
+}
+
 export {
     ForwardLine,
     DefenceLine,
-    TeamLines
+    GameTeam,
+    GameLines
 };

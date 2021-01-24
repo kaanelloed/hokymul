@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import {Skater} from './player.js';
-import {ForwardLine, DefenceLine} from './teamLine.js';
-import {Team} from './team.js';
+import {Goalie, Player, PlayerPosition, Skater} from './player.js';
+import {ForwardLine, DefenceLine, GameTeam, GameLines} from './gameLine.js';
+import {Team, TeamLine, LineType} from './team.js';
 import {getGameTime} from './utils.js'
 
 class ScoreBoard {
     id: number;
     date: Date;
-    homeTeam: Team;
-    awayTeam: Team;
+    homeTeam: GameTeam;
+    awayTeam: GameTeam;
     periods: GamePeriod[];
 
-    constructor(id: number, date: Date, homeTeam: Team, awayTeam: Team) {
+    constructor(id: number, date: Date, homeTeam: GameTeam, awayTeam: GameTeam) {
         this.id = id;
         this.date = date;
         this.homeTeam = homeTeam;
@@ -37,7 +37,7 @@ class ScoreBoard {
     toString(): string {
         let text = `<div>${this.date.toLocaleDateString()}</div>`;
 
-        text += `<div>${this.homeTeam.name} ${this.homeTeam.goal} - ${this.awayTeam.name} ${this.awayTeam.goal}</div>`;
+        text += `<div>${this.homeTeam.team.name} ${this.homeTeam.goal} - ${this.awayTeam.team.name} ${this.awayTeam.goal}</div>`;
         text += `<div>Shots: ${this.homeTeam.shoot} - ${this.awayTeam.shoot}</div>`;
 
         for (var per of this.periods) {
@@ -117,8 +117,8 @@ class Game {
     periodLength: number;
     nbPeriod: number;
     goalieBase: number;
-    homeTeam: Team;
-    awayTeam: Team;
+    homeTeam: GameTeam;
+    awayTeam: GameTeam;
 
     constructor(date: Date, homeTeam: Team, awayTeam: Team) {
         this.date = date;
@@ -129,18 +129,54 @@ class Game {
 
         this.goalieBase = 0.6;
 
-        this.homeTeam = homeTeam;
-        this.awayTeam = awayTeam;
+        this.homeTeam = new GameTeam(homeTeam);
+        this.awayTeam = new GameTeam(awayTeam);
+    }
+
+    setGameLines(players: Player[]) {
+        this.setTeamGameLines(this.homeTeam, players);
+        this.setTeamGameLines(this.awayTeam, players);
+    }
+
+    setTeamGameLines(gameTeam: GameTeam, players: Player[]) {
+        gameTeam.lines = new GameLines();
+
+        let offLines = gameTeam.team.lines.filter(r => r.type === LineType.ForwardLine).sort((a, b) => a.lineNumber - b.lineNumber);
+        for (let offLine of offLines) {
+            let leftWingId = offLine.playerLines.find(r => r.position === PlayerPosition.leftWing).playerId;
+            let leftWing = players.find(r => r.id === leftWingId) as Skater;
+            let centerId = offLine.playerLines.find(r => r.position === PlayerPosition.center).playerId;
+            let center = players.find(r => r.id === centerId) as Skater;
+            let rightWingId = offLine.playerLines.find(r => r.position === PlayerPosition.rightWing).playerId;
+            let rightWing = players.find(r => r.id === rightWingId) as Skater;
+
+            gameTeam.lines.addForwardLine(new ForwardLine(leftWing, center, rightWing, offLine.timeOnIce, offLine.lineNumber));
+        }
+
+        let defLines = gameTeam.team.lines.filter(r => r.type === LineType.DefenceLine).sort((a, b) => a.lineNumber - b.lineNumber);
+        for (let defLine of defLines) {
+            let leftDefId = defLine.playerLines.find(r => r.position === PlayerPosition.leftDefenceman).playerId;
+            let leftDef = players.find(r => r.id === leftDefId) as Skater;
+            let rightDefId = defLine.playerLines.find(r => r.position === PlayerPosition.rightDefenceman).playerId;
+            let rightDef = players.find(r => r.id === rightDefId) as Skater;
+
+            gameTeam.lines.addDefenceLine(new DefenceLine(leftDef, rightDef, defLine.timeOnIce, defLine.lineNumber));
+        }
+
+        let goalies = gameTeam.team.lines.filter(r => r.type === LineType.Goalie);
+        let goalie1Id = goalies.find(r => r.lineNumber === 1).playerLines[0].playerId;
+        let goalie1 = players.find(r => r.id === goalie1Id) as Goalie;
+        let goalie2Id = goalies.find(r => r.lineNumber === 2).playerLines[0].playerId;
+        let goalie2 = players.find(r => r.id === goalie2Id) as Goalie;
+
+        gameTeam.lines.addGoalies(goalie1, goalie2);
     }
 
     simulate(): void {
         let homeTeamWin: Boolean;
         let overTime: boolean = false;
 
-        this.score = new ScoreBoard(1, this.date, this.homeTeam , this.awayTeam)
-    
-        this.homeTeam.resetScore();
-        this.awayTeam.resetScore();
+        this.score = new ScoreBoard(1, this.date, this.homeTeam, this.awayTeam)
     
         for (var p = 1; p <= this.nbPeriod; p++) {
             let per = {name: "Period " + p, goals: []};
@@ -176,21 +212,30 @@ class Game {
 
         if (overTime) {
             if (homeTeamWin) {
-                this.homeTeam.results.win++;
-                this.awayTeam.results.otl++;
+                this.homeTeam.team.results.win++;
+                this.awayTeam.team.results.otl++;
             } else {
-                this.homeTeam.results.otl++;
-                this.awayTeam.results.win++;
+                this.homeTeam.team.results.otl++;
+                this.awayTeam.team.results.win++;
             }
         }
         else {
             if (homeTeamWin) {
-                this.homeTeam.results.win++;
-                this.awayTeam.results.lose++;
+                this.homeTeam.team.results.win++;
+                this.awayTeam.team.results.lose++;
             } else {
-                this.homeTeam.results.lose++;
-                this.awayTeam.results.win++;
+                this.homeTeam.team.results.lose++;
+                this.awayTeam.team.results.win++;
             }
+        }
+        
+        let homePlayers = this.homeTeam.lines.getSkater();
+        for (let homePlayer of homePlayers) {
+            homePlayer.stats.gamePlayed++;
+        }
+        let awayPlayers = this.awayTeam.lines.getSkater();
+        for (let awayPlayer of awayPlayers) {
+            awayPlayer.stats.gamePlayed++;
         }
     }
     
@@ -205,7 +250,7 @@ class Game {
     
         if (this.scoringRate + score > Math.random() * 100) {
             let offenceTeam = ((this.homeTeam.lines.lineOffense() - this.awayTeam.lines.lineOffense()) / 100) + 0.5 < Math.random() ? this.homeTeam : this.awayTeam;
-            let defenseTeam = offenceTeam.id === this.homeTeam.id ? this.awayTeam : this.homeTeam;
+            let defenseTeam = offenceTeam.team.id === this.homeTeam.team.id ? this.awayTeam : this.homeTeam;
     
             offenceTeam.shoot++;
     
@@ -230,7 +275,7 @@ class Game {
                     }
                 }
 
-                period.goals.push(new GameGoal(time, scorer, scorer.goal, primAssistSkater, primAssistSkater?.assist, secAssistSkater, secAssistSkater?.assist, this.homeTeam.goal, this.awayTeam.goal, offenceTeam));
+                period.goals.push(new GameGoal(time, scorer, scorer.goal, primAssistSkater, primAssistSkater?.assist, secAssistSkater, secAssistSkater?.assist, this.homeTeam.goal, this.awayTeam.goal, offenceTeam.team));
             }
         }
     
@@ -288,9 +333,9 @@ class Game {
         return skater;
     }
     
-    generatePlayers(): void {
-        document.getElementById("team1").innerHTML = this.homeTeam.getPlayersTable();
-        document.getElementById("team2").innerHTML = this.awayTeam.getPlayersTable();
+    generatePlayers(players: Player[]): void {
+        document.getElementById("team1").innerHTML = this.homeTeam.team.getPlayersTable(players);
+        document.getElementById("team2").innerHTML = this.awayTeam.team.getPlayersTable(players);
     }
 }
 

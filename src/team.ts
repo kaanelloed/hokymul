@@ -15,24 +15,22 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {Player, Skater, Goalie, PlayerPosition} from './player.js';
-import {ForwardLine, DefenceLine, TeamLines} from './teamLine.js';
 import {randomBetween} from './utils.js'
 
 class Team {
     id: number;
+    conferenceId: number;
+    divisionId: number;
     name: string;
-    shoot: number;
-    goal: number;
-    lines: TeamLines;
-    players: Player[];
+    lines: TeamLine[];
     results: TeamResults;
 
-    constructor(id: number, name: string) {
+    constructor(id: number, name: string, conferenceId: number, divisionId: number) {
         this.id = id;
         this.name = name;
-        this.shoot = 0;
-        this.goal = 0;
-        this.players = [];
+
+        this.conferenceId = conferenceId;
+        this.divisionId = divisionId;
 
         this.lines = undefined;
         this.results = new TeamResults();
@@ -42,25 +40,20 @@ class Team {
         return this.lines !== undefined;
     }
 
-    resetScore(): void {
-        this.shoot = 0;
-        this.goal = 0;
-
-        //this.lines.resetScore();
-    }
-
-    getPlayersTable(): string {
+    getPlayersTable(players: Player[]): string {
         let text = "<table><tr><td>Name</td><td>Position</td><td>Off</td><td>Def</td><td>Ov</td></tr>";
         let off = 0;
         let def = 0;
 
-        for (let player of this.players) {
+        let teamPlayers = players.filter(r => r.teamId === this.id);
+
+        for (let player of teamPlayers) {
             if (player instanceof Skater) {
                 off = player.off;
                 def = player.def;
             }
             
-            text += `<tr><td>${player.name}</td><td>${player.getPositionCode()}</td><td>${off ?? 0}</td><td>${def ?? 0}</td><td>${player.ov}</td></tr>`;
+            text += `<tr><td>${player.name}</td><td>${player.getPositionCode()}</td><td>${(off ?? 0)}</td><td>${(def ?? 0)}</td><td>${player.ov}</td></tr>`;
 
             off = 0;
             def = 0;
@@ -70,35 +63,34 @@ class Team {
         return text;
     }
 
-    generateTeamPlayers() {
-        let id = 0;
-        this.players = [];
-    
-        id = this.generateSkatersForPosition(this, PlayerPosition.leftWing, 60, 85, 55, 80, 4, id);
-        id = this.generateSkatersForPosition(this, PlayerPosition.center, 60, 85, 55, 80, 4, id);
-        id = this.generateSkatersForPosition(this, PlayerPosition.rightWing, 60, 85, 55, 80, 4, id);
-        id = this.generateSkatersForPosition(this, PlayerPosition.leftDefenceman, 60, 85, 55, 80, 3, id);
-        id = this.generateSkatersForPosition(this, PlayerPosition.rightDefenceman, 55, 80, 65, 85, 3, id);
-        id = this.generateGoalies(this, 70, 85, 2, id);
+    generateTeamPlayers(players: Player[], id: number): number {
+        id = this.generateSkatersForPosition(this, PlayerPosition.leftWing, 60, 85, 55, 80, 4, id, players);
+        id = this.generateSkatersForPosition(this, PlayerPosition.center, 60, 85, 55, 80, 4, id, players);
+        id = this.generateSkatersForPosition(this, PlayerPosition.rightWing, 60, 85, 55, 80, 4, id, players);
+        id = this.generateSkatersForPosition(this, PlayerPosition.leftDefenceman, 60, 85, 55, 80, 3, id, players);
+        id = this.generateSkatersForPosition(this, PlayerPosition.rightDefenceman, 55, 80, 65, 85, 3, id, players);
+        id = this.generateGoalies(this, 70, 85, 2, id, players);
+
+        return id;
     }
 
-    generateSkatersForPosition(team: Team, pos: PlayerPosition, minOffence: number, maxOffence: number, minDefence: number, maxDefence: number, nbToGenerate: number, startingId: number): number {
+    generateSkatersForPosition(team: Team, pos: PlayerPosition, minOffence: number, maxOffence: number, minDefence: number, maxDefence: number, nbToGenerate: number, startingId: number, players: Player[]): number {
         for(let i = 0; i < nbToGenerate; i++) {
-            team.players.push(new Skater(startingId++, Player.generatePlayerName(), team.id, pos, randomBetween(minOffence, maxOffence), randomBetween(minDefence, maxDefence)));
+            players.push(new Skater(startingId++, Player.generatePlayerName(), team.id, pos, randomBetween(minOffence, maxOffence), randomBetween(minDefence, maxDefence)));
         }
 
         return startingId;
     }
 
-    generateGoalies(team: Team, minOveral: number, maxOveral: number, nbToGenerate: number, startingId: number): number {
+    generateGoalies(team: Team, minOveral: number, maxOveral: number, nbToGenerate: number, startingId: number, players: Player[]): number {
         for(let i = 0; i < nbToGenerate; i++) {
-            team.players.push(new Goalie(startingId++, Player.generatePlayerName(), team.id, randomBetween(minOveral, maxOveral)));
+            players.push(new Goalie(startingId++, Player.generatePlayerName(), team.id, randomBetween(minOveral, maxOveral)));
         }
 
         return startingId;
     }
 
-    autoLine(offLines: number, defLines: number): void {
+    autoLine(players: Player[], offLines: number, defLines: number): void {
         let leftWings: Player[] = [];
         let centers: Player[] = [];
         let rightWings: Player[] = [];
@@ -106,41 +98,55 @@ class Team {
         let rightDefencemen: Player[] = [];
         let goalies: Player[] = [];
 
-        leftWings = this.getPlayerDescending(PlayerPosition.leftWing);
-        centers = this.getPlayerDescending(PlayerPosition.center);
-        rightWings = this.getPlayerDescending(PlayerPosition.rightWing);
-        leftDefencemen = this.getPlayerDescending(PlayerPosition.leftDefenceman);
-        rightDefencemen = this.getPlayerDescending(PlayerPosition.rightDefenceman);
-        goalies = this.getPlayerDescending(PlayerPosition.goalie);
+        leftWings = this.getPlayerDescending(players, PlayerPosition.leftWing);
+        centers = this.getPlayerDescending(players, PlayerPosition.center);
+        rightWings = this.getPlayerDescending(players, PlayerPosition.rightWing);
+        leftDefencemen = this.getPlayerDescending(players, PlayerPosition.leftDefenceman);
+        rightDefencemen = this.getPlayerDescending(players, PlayerPosition.rightDefenceman);
+        goalies = this.getPlayerDescending(players, PlayerPosition.goalie);
 
-        this.lines = new TeamLines();
+        this.lines = [];
 
         let toi = 80;
         for (let i = 1; i <= offLines; i++) {
-            this.lines.addForwardLine(new ForwardLine(leftWings[i - 1] as Skater, centers[i - 1] as Skater, rightWings[i - 1] as Skater, toi, i));
+            let offLine = new TeamLine(i, LineType.ForwardLine, toi);
+            offLine.playerLines.push(new PlayerLine(PlayerPosition.leftWing, leftWings[i - 1].id));
+            offLine.playerLines.push(new PlayerLine(PlayerPosition.center, centers[i - 1].id));
+            offLine.playerLines.push(new PlayerLine(PlayerPosition.rightWing, rightWings[i - 1].id));
+            this.lines.push(offLine);
+            
             toi -= 20;
         }
 
         toi = 70
         for (let i = 1; i <= defLines; i++) {
-            this.lines.addDefenceLine(new DefenceLine(leftDefencemen[i - 1] as Skater, rightDefencemen[i - 1] as Skater, toi, i));
+            let defLine = new TeamLine(i, LineType.DefenceLine, toi);
+            defLine.playerLines.push(new PlayerLine(PlayerPosition.leftDefenceman, leftDefencemen[i - 1].id));
+            defLine.playerLines.push(new PlayerLine(PlayerPosition.rightDefenceman, rightDefencemen[i - 1].id));
+            this.lines.push(defLine);
+
             toi -= 20;
         }
 
-        this.lines.addGoalies(goalies[0], goalies[1]);
+        let goalie1 = new TeamLine(1, LineType.Goalie, toi);
+        goalie1.playerLines.push(new PlayerLine(PlayerPosition.goalie, goalies[0].id));
+        this.lines.push(goalie1);
+
+        let goalie2 = new TeamLine(2, LineType.Goalie, toi);
+        goalie2.playerLines.push(new PlayerLine(PlayerPosition.goalie, goalies[1].id));
+        this.lines.push(goalie2);
     }
 
-    private getPlayerDescending(position: PlayerPosition): Player[] {
-        return this.players.filter(r => r.pos === position).sort((a, b) => b.ov - a.ov);
+    private getPlayerDescending(players: Player[], position: PlayerPosition): Player[] {
+        return players.filter(r => r.pos === position).sort((a, b) => b.ov - a.ov);
     }
 
     static fromObject(obj: any): Team {
         let inst: Team;
 
         inst = obj;
-        inst = Object.assign(new Team(inst.id, inst.name), obj);
+        inst = Object.assign(new Team(0, "", 0, 0), obj);
         inst.results = Object.assign(new TeamResults(), inst.results);
-        inst.lines = TeamLines.fromObject(inst.lines);
 
         return inst;
     }
@@ -166,6 +172,41 @@ class TeamResults {
     }
 }
 
+enum LineType {
+    ForwardLine,
+    DefenceLine,
+    Goalie,
+    Powerplay,
+    PenaltyKill,
+    Even4vs4,
+    Even3vs3
+}
+
+class TeamLine {
+    playerLines: PlayerLine[];
+    type: LineType;
+    lineNumber: number;
+    timeOnIce: number;
+
+    constructor(lineNumber: number, type: LineType, timeOnIce: number) {
+        this.lineNumber = lineNumber;
+        this.type = type;
+        this.timeOnIce = timeOnIce;
+
+        this.playerLines = [];
+    }
+}
+
+class PlayerLine {
+    position: PlayerPosition;
+    playerId: number;
+
+    constructor(position: PlayerPosition, playerId: number) {
+        this.position = position;
+        this.playerId = playerId;
+    }
+}
+
 class TeamCapHit {
     projectedCapHit: number;
     dailyCapHit: number;
@@ -174,7 +215,7 @@ class TeamCapHit {
     currentCapSpace: number;
     tradeDeadlineCapSpace: number;
 
-    public calculateCap(team: Team, salaryCap: number, seasonLength: number, seasonStart: Date, seasonEnd: Date, currentDate: Date) {
+    public calculateCap(team: Team, players: Player[], salaryCap: number, seasonLength: number, seasonStart: Date, seasonEnd: Date, currentDate: Date) {
         let totalSalary: number = 0;
         let salaryOfDay: number;
         let daysLeft: number;
@@ -191,7 +232,7 @@ class TeamCapHit {
             salaryOfDay = 0;
             daysLeft--;
 
-            for (let player of team.players) {
+            for (let player of players) {
                 salaryOfDay += player.salary / seasonLength;
             }
 
@@ -211,5 +252,7 @@ class TeamCapHit {
 }
 
 export {
-    Team
+    Team,
+    TeamLine,
+    LineType
 };

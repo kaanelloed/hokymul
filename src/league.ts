@@ -23,16 +23,20 @@ class League {
     settings: LeagueSettings;
     calendar: Calendar;
     conferences: Conference[];
+    teams: Team[];
     interGames: number;
     currentDate: Date;
     todayGames: GamesDay;
     salaryCap: number;
     floorCap: number;
+    leagueId: number;
 
-    constructor() {
+    constructor(id: number) {
         this.settings = new LeagueSettings();
         this.conferences = [];
+        this.teams = [];
         this.interGames = 2;
+        this.leagueId = id;
     }
 
     addConference(conference: Conference): void {
@@ -46,30 +50,10 @@ class League {
     }
 
     getTeam(teamId: number): Team {
-        return this.getTeams().find(t => t.id === teamId)
+        return this.teams.find(t => t.id === teamId)
     }
 
-    getTeams(): Team[] {
-        let teams: Team[] = [];
-
-        for (let conference of this.conferences) {
-            teams = teams.concat(conference.getTeams());
-        }
-
-        return teams;
-    }
-
-    getPlayers(): Player[] {
-        let players: Player[] = [];
-
-        for (let conference of this.conferences) {
-            players = players.concat(conference.getPlayers());
-        }
-
-        return players;
-    }
-
-    static generateTestLeague(): League {
+    static generateTestLeague(players: Player[]): League {
         let league: League;
         let teamDiv1 = ["Boston", "Buffalo", "Detroit", "Florida", "Montréal", "Ottawa", "Tampa Bay", "Toronto"];
         let teamDiv2 = ["Carolina", "Columbus", "New Jersey", "New York I", "New York R", "Philadelphia", "Pittsburgh", "Washington"];
@@ -78,46 +62,23 @@ class League {
         let i: number;
 
         i = 1;
-        league = new League();
+        league = new League(1);
 
         let conf1: Conference, conf2: Conference;
         let div1: Division, div2: Division, div3: Division, div4: Division;
 
-        div1 = new Division();
-        div2 = new Division();
-        div3 = new Division();
-        div4 = new Division();
+        div1 = new Division(0);
+        div2 = new Division(1);
+        div3 = new Division(2);
+        div4 = new Division(3);
 
-        for (let str of teamDiv1) {
-            let team = new Team(i++, str);
-            team.generateTeamPlayers();
-            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
-            div1.addTeam(team);
-        }
+        i = div1.generateTestTeams(league, teamDiv1, i, players);
+        i = div2.generateTestTeams(league, teamDiv2, i, players);
+        i = div3.generateTestTeams(league, teamDiv3, i, players);
+        i = div4.generateTestTeams(league, teamDiv4, i, players);
 
-        for (let str of teamDiv2) {
-            let team = new Team(i++, str);
-            team.generateTeamPlayers();
-            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
-            div2.addTeam(team);
-        }
-
-        for (let str of teamDiv3) {
-            let team = new Team(i++, str);
-            team.generateTeamPlayers();
-            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
-            div3.addTeam(team);
-        }
-
-        for (let str of teamDiv4) {
-            let team = new Team(i++, str);
-            team.generateTeamPlayers();
-            team.autoLine(league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
-            div4.addTeam(team);
-        }
-
-        conf1 = new Conference();
-        conf2 = new Conference();
+        conf1 = new Conference(0);
+        conf2 = new Conference(1);
 
         conf1.addDivisions(div1, div2);
         conf2.addDivisions(div3, div4);
@@ -147,7 +108,10 @@ class League {
         strTable = "<tr><td><i>Home</i></td><td><i>Away</i></td></tr>"
 
         for(gameDay of this.todayGames.games) {
-            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${gameDay.homeTeam.name}</td><td>${gameDay.awayTeam.name}</td></tr>`;
+            let homeTeam = this.teams.find(r => r.id === gameDay.homeTeamId);
+            let awayTeam = this.teams.find(r => r.id === gameDay.awayTeamId);
+
+            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${homeTeam.name}</td><td>${awayTeam.name}</td></tr>`;
             i++;
         }
 
@@ -162,7 +126,10 @@ class League {
         strTable = "<tr><td><i>Home</i></td><td><i>Away</i></td><td></td></tr>"
 
         for(gameDay of this.todayGames.games) {
-            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${gameDay.homeTeam.name} ${gameDay.game.homeTeam.goal}</td><td>${gameDay.awayTeam.name} ${gameDay.game.awayTeam.goal}</td><td onclick="toggleScore(${i})">↓</td></tr>`;
+            let homeTeam = this.teams.find(r => r.id === gameDay.homeTeamId);
+            let awayTeam = this.teams.find(r => r.id === gameDay.awayTeamId);
+
+            strTable += `<tr id="game${i}" data-gameId="${i - 1}"><td>${homeTeam.name} ${gameDay.game.homeTeam.goal}</td><td>${awayTeam.name} ${gameDay.game.awayTeam.goal}</td><td onclick="toggleScore(${i})">↓</td></tr>`;
             strTable += `<tr id="gameScore${i}" hidden><td colspan="3">${gameDay.game.score.toString()}</td></tr>`;
             i++;
         }
@@ -170,7 +137,7 @@ class League {
         return strTable;
     }
 
-    simulateDay(): void {
+    simulateDay(players: Player[]): void {
         let gameDay: GameDay;
 
         if (this.todayGames.gamesPlayed)
@@ -179,7 +146,11 @@ class League {
         for(gameDay of this.todayGames.games) {
             let game: Game;
 
-            game = new Game(this.currentDate, gameDay.homeTeam, gameDay.awayTeam);
+            let homeTeam = this.teams.find(r => r.id === gameDay.homeTeamId);
+            let awayTeam = this.teams.find(r => r.id === gameDay.awayTeamId);
+
+            game = new Game(this.currentDate, homeTeam, awayTeam);
+            game.setGameLines(players);
             game.simulate();
             gameDay.game = game;
         }
@@ -190,11 +161,14 @@ class League {
     static fromObject(obj: any): League {
         let inst: League;
 
-        inst = Object.assign(new League(), obj);
+        inst = Object.assign(new League(0), obj);
         inst.currentDate = new Date(inst.currentDate);
         inst.calendar = Calendar.fromObject(inst.calendar);
         for (let i = 0; i < inst.conferences.length; i++) {
             inst.conferences[i] = Conference.fromObject(inst.conferences[i]);
+        }
+        for (let i = 0; i < inst.teams.length; i++) {
+            inst.teams[i] = Team.fromObject(inst.teams[i]);
         }
 
         return inst;
@@ -219,14 +193,17 @@ class LeagueSettings {
 
 class Conference {
     divisions: Division[];
+    conferenceId: number;
     intraGames: number;
 
-    constructor() {
+    constructor(id: number) {
+        this.conferenceId = id;
         this.divisions = [];
         this.intraGames = 3;
     }
 
     addDivision(division: Division): void {
+        division.conferenceId = this.conferenceId;
         this.divisions.push(division);
     }
 
@@ -236,30 +213,10 @@ class Conference {
         }
     }
 
-    getTeams(): Team[] {
-        let teams: Team[] = [];
-
-        for (let division of this.divisions) {
-            teams = teams.concat(division.teams);
-        }
-
-        return teams;
-    }
-
-    getPlayers(): Player[] {
-        let players: Player[] = [];
-
-        for (let division of this.divisions) {
-            players = players.concat(division.getPlayers());
-        }
-
-        return players;
-    }
-
     static fromObject(obj: any): Conference {
         let inst: Conference;
 
-        inst = Object.assign(new Conference(), obj);
+        inst = Object.assign(new Conference(0), obj);
         for (let i = 0; i < inst.divisions.length; i++) {
             inst.divisions[i] = Division.fromObject(inst.divisions[i]);
         }
@@ -269,43 +226,39 @@ class Conference {
 }
 
 class Division {
-    teams: Team[];
+    divisionId: number;
+    conferenceId: number;
     intraGamesMax: number;
     intraGamesMin: number;
 
-    constructor() {
-        this.teams = [];
+    constructor(id: number) {
+        this.divisionId = id;
+        this.conferenceId = undefined;
         this.intraGamesMax = 4;
         this.intraGamesMin = 3;
     }
 
-    addTeam(team: Team): void {
-        this.teams.push(team);
-    }
+    generateTestTeams(league: League, teamsNames: string[], teamId: number, players: Player[]): number {
+        let id: number = 0;
 
-    addTeams(...teams: Team[]): void {
-        for (let team of teams) {
-            this.addTeam(team);
-        }
-    }
-
-    getPlayers(): Player[] {
-        let players: Player[] = [];
-
-        for (let team of this.teams) {
-            players = players.concat(team.players);
+        if (players.length > 0) {
+            id = players.map(r => r.id).reduce((a, b) => Math.max(a, b)) + 1;
         }
 
-        return players;
+        for (let str of teamsNames) {
+            let team = new Team(teamId++, str, this.conferenceId, this.divisionId);
+            id = team.generateTeamPlayers(players, id);
+            team.autoLine(players.filter(r => r.teamId === team.id), league.settings.nbOffensiveLine, league.settings.nbDefensiveLine);
+            league.teams.push(team);
+        }
+
+        return teamId;
     }
 
     static fromObject(obj: any): Division {
         let inst: Division;
 
-        inst = Object.assign(new Division(), obj);
-        for (let i = 0; i < inst.teams.length; i++) {
-            inst.teams[i] = Team.fromObject(inst.teams[i]);
-        }
+        inst = Object.assign(new Division(0), obj);
 
         return inst;
     }

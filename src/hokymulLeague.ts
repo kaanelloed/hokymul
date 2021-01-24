@@ -15,9 +15,11 @@
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { League } from "./league.js";
+import { Goalie, Player, Skater } from "./player.js";
 
 class HokymulLeague {
-    mainLeague: League
+    players: Player[];
+    mainLeague: League;
     createdDate: Date;
     lastUpdateDate: Date;
 
@@ -27,7 +29,8 @@ class HokymulLeague {
     }
 
     generateTestLeague(): void {
-        this.mainLeague = League.generateTestLeague();
+        this.players = [];
+        this.mainLeague = League.generateTestLeague(this.players);
     }
 
     static fromObject(obj: any): HokymulLeague {
@@ -37,6 +40,14 @@ class HokymulLeague {
         inst.createdDate = new Date(inst.createdDate);
         inst.lastUpdateDate = new Date(inst.lastUpdateDate);
         inst.mainLeague = League.fromObject(inst.mainLeague);
+        for (let i = 0; i < inst.players.length; i++) {
+            if (inst.players[i].pos !== 5) {
+                inst.players[i] = Skater.fromObject(inst.players[i]);
+            }
+            else {
+                inst.players[i] = Goalie.fromObject(inst.players[i]);
+            }
+        }
 
         return inst;
     }

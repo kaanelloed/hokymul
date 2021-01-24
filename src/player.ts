@@ -106,25 +106,55 @@ class Skater extends Player{
         this.goal = 0;
         this.assist = 0;
     }
+
+    static fromObject(obj: any): Skater {
+        let inst: Skater;
+
+        inst = obj;
+        inst = Object.assign(new Skater(0, "", 0, 0, 0, 0), obj);
+        inst.stats = SkaterStatistics.fromObject(inst.stats);
+
+        return inst;
+    }
 }
 
 class Goalie extends Player {
     constructor(id: number, name: string, teamId: number, ov: number) {
         super(id, name, teamId, PlayerPosition.goalie, ov);
     }
+
+    static fromObject(obj: any): Goalie {
+        let inst: Goalie;
+
+        inst = obj;
+        inst = Object.assign(new Goalie(0, "", 0, 0), obj);
+
+        return inst;
+    }
 }
 
 class SkaterStatistics {
+    gamePlayed: number;
     goal: number;
     assist: number;
 
     constructor () {
+        this.gamePlayed = 0;
         this.goal = 0;
         this.assist = 0;
     }
 
     public getPoints() {
         return this.goal + this.assist;
+    }
+
+    static fromObject(obj: any): SkaterStatistics {
+        let inst: SkaterStatistics;
+
+        inst = obj;
+        inst = Object.assign(new SkaterStatistics(), obj);
+
+        return inst;
     }
 }
 
