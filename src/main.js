@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
 const fs = require("fs").promises
+const path = require('path')
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -7,7 +8,7 @@ function createWindow () {
     height: 600,
     icon: "icons/favicon32x32.png",
     webPreferences: {
-      nodeIntegration: true
+      preload : path.join(app.getAppPath(), 'preload.js')
     }
   })
 

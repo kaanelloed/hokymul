@@ -19,7 +19,15 @@ import {ForwardLine, DefenceLine, GameLines} from './gameLine.js';
 import {Team} from './team.js';
 import {HokymulLeague} from './hokymulLeague.js'
 
-const { ipcRenderer } = require('electron')
+declare global {
+    interface Window {
+        electron: { 
+            saveLeague(file: string, content: string): Promise<any>,
+            openLeague(file: string): Promise<any>,
+            getNames(): any
+        };
+    }
+}
 
 let hokyLeague: HokymulLeague = undefined;
 
@@ -152,13 +160,13 @@ function saveHokymul_Click(): void {
 
     jsonString = JSON.stringify(hokyLeague);
 
-    ipcRenderer.invoke("saveLeague", "scripts/test.json", jsonString).then((result) => {
+    window.electron.saveLeague("scripts/test.json", jsonString).then((result) => {
         console.log(result);
     });
 }
 
 function openHokymul_Click(): void {
-    ipcRenderer.invoke("openLeague", "scripts/test.json").then((result) => {
+    window.electron.openLeague("scripts/test.json").then((result) => {
         hokyLeague = HokymulLeague.fromObject(JSON.parse(result));
 
         document.getElementById("tblGames").innerHTML = hokyLeague.mainLeague.generateGameDayTable();

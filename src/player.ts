@@ -16,7 +16,7 @@
 
 import {randomBetween} from './utils.js'
 
-const names = require("./names/defaultNames.json");
+const names = window.electron.getNames();
 
 class Player {
     id: number;
